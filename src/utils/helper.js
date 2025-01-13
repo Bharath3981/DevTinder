@@ -13,7 +13,11 @@ const comparePassword = async (enteredPass, emailId) => {
     throw new Error("EmailId is not registered");
   }
   const isPasswordValid = await bcrypt.compare(enteredPass, user.password);
-  return isPasswordValid;
+  if (isPasswordValid) {
+    return user.getJWT();
+  } else {
+    return isPasswordValid;
+  }
 };
 
 const validateSignUpData = (req) => {
@@ -27,4 +31,32 @@ const validateSignUpData = (req) => {
   }
 };
 
-module.exports = { validateSignUpData, encryptString, comparePassword };
+const userAuth = async (req, res, next) => {
+  try {
+    const cookies = req.cookies;
+    const { token } = cookies;
+    console.log("userAuth called");
+    if (!token) {
+      throw new Error("Token is not valid");
+    }
+    const decodedObj = await jwt.verify(token, "devTinder");
+    const { _id } = decodedObj;
+    const user = await User.findById(_id);
+    if (!user) {
+      throw new Error("User not found");
+    }
+    req.user = user;
+    next();
+  } catch (err) {
+    res.status(400).send("ERROR: " + err.message);
+  }
+};
+
+const isAuthorizedRequest = (req) => {};
+
+module.exports = {
+  userAuth,
+  validateSignUpData,
+  encryptString,
+  comparePassword,
+};

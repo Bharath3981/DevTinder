@@ -1,16 +1,72 @@
 const express = require("express");
 const connectDB = require("./config/database");
 const User = require("./config/models/user");
-const { validateSignUpData, comparePassword } = require("./utils/helper");
+const {
+  validateSignUpData,
+  comparePassword,
+  userAuth,
+} = require("./utils/helper");
 const encryptString = require("./utils/encryptStrings");
+const cookieParser = require("cookie-parser");
+const jwt = require("jsonwebtoken");
 
 const app = express();
 
 app.use(express.json());
+app.use(cookieParser());
 
-app.get("/user", async (req, res) => {
+app.post("/signup", async (req, res) => {
   try {
-    const user = await User.find(req.body);
+    validateSignUpData(req);
+    req.body.password = await encryptString(req.body.password);
+    const user = new User(req.body);
+    await user.save();
+    console.log(user);
+    res.status(200).send("User saved successfully!");
+  } catch (err) {
+    res.status(400).send("Something went wrong: " + err);
+  }
+});
+app.post("/login", async (req, res) => {
+  try {
+    const { emailId, password } = req.body;
+
+    const token = await comparePassword(password, emailId);
+    if (token) {
+      res.cookie("token", token, {
+        expires: new Date(Date.now() + 1 * 3600000),
+      }); // Expires in 1 day
+      res.send("Login Successfull!!");
+    } else {
+      throw new Error("Email or password invalid");
+    }
+  } catch (err) {
+    res.status(400).send("Something went wrong: " + err);
+  }
+});
+//This below api will call for all apis except signup or login
+// There is other way to call middleewware method userAuth
+// we can pass argument
+//app.use("/", userAuth);
+app.get("/profile", userAuth, async (req, res) => {
+  try {
+    const user = req.user;
+    res.status(200).send(user);
+  } catch (err) {
+    res.status(400).send("Something went wrong: " + err);
+  }
+});
+app.post("/sendConnectionRequest", userAuth, async (req, res) => {
+  try {
+    const user = req.user;
+    res.status(200).send(user.firstName + " sent the connectiontion request!");
+  } catch (err) {
+    res.status(400).send("Something went wrong: " + err);
+  }
+});
+app.get("/user", userAuth, async (req, res) => {
+  try {
+    const user = req.user;
     if (user.length) {
       res.send(user);
     } else {
@@ -28,32 +84,6 @@ app.get("/feed", async (req, res) => {
     res.status(400).send("Something went wrong: " + err.errmsg);
   }
 });
-app.post("/login", async (req, res) => {
-  try {
-    const { emailId, password } = req.body;
-
-    const isPasswordValid = await comparePassword(password, emailId);
-    if (isPasswordValid) {
-      res.send("Login Successfull!!");
-    } else {
-      throw new Error("Email or password invalid");
-    }
-  } catch (err) {
-    res.status(400).send("Something went wrong: " + err);
-  }
-});
-app.post("/signup", async (req, res) => {
-  try {
-    validateSignUpData(req);
-    req.body.password = await encryptString(req.body.password);
-    const user = new User(req.body);
-    await user.save();
-    console.log(user);
-    res.status(200).send("User saved successfully!");
-  } catch (err) {
-    res.status(400).send("Something went wrong: " + err);
-  }
-});
 app.delete("/user", async (req, res) => {
   try {
     const user = await User.findByIdAndDelete(req.body.userId);
@@ -67,7 +97,6 @@ app.delete("/user", async (req, res) => {
     res.status(400).send("Something went wrong: " + err.errmsg);
   }
 });
-
 app.patch("/user", async (req, res) => {
   const data = req.body;
 

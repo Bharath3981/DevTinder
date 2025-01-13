@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "start": "node src/app.js",
-    "dev": "nodemon src/app.js"
+    "dev": "nodemon src/app.js",
+    "devpg": "nodemon srcpg/index.js"
   },
   "keywords": [
     "nodejs",
@@ -15,9 +16,12 @@
   "license": "ISC",
   "dependencies": {
     "bcrypt": "^5.1.1",
+    "cookie-parser": "^1.4.7",
     "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.12.0",
     "mongoose": "^8.9.4",
+    "pg": "^8.13.1",
     "validator": "^13.12.0"
   }
 }
