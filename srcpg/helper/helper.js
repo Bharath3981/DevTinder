@@ -2,6 +2,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
 const encryptString = async (someString) => {
+  console.log("encryptStin: ", someString);
   const stringHash = await bcrypt.hash(someString, 10);
   console.log("stringhash: ", stringHash);
   return stringHash;

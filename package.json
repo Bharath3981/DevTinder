@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node src/app.js",
     "dev": "nodemon src/app.js",
-    "devpg": "nodemon srcpg/index.js"
+    "devpg": "nodemon srcpg/index.js",
+    "devpgg": "nodemon srcpg/indexg.js"
   },
   "keywords": [
     "nodejs",
@@ -18,6 +19,8 @@
     "bcrypt": "^5.1.1",
     "cookie-parser": "^1.4.7",
     "express": "^4.21.2",
+    "@apollo/server": "^4.11.3",
+    "graphql": "^16.10.0",
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.12.0",
     "mongoose": "^8.9.4",

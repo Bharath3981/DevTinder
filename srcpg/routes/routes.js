@@ -6,12 +6,12 @@ const {
   signupUser,
   loginUser,
   getProfile,
+  updateUserData,
 } = require("../controllers/userController");
 
 router.post("/signup", signupUser);
-router.get("/user", getUsers);
 router.post("/login", loginUser);
 
 router.get("/profile", userAuth, getProfile);
-
+router.patch("/user", userAuth, updateUserData);
 module.exports = router;

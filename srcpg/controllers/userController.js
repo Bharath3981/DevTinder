@@ -1,4 +1,8 @@
-const { createUser, checkEmailAndPassword } = require("../config/database");
+const {
+  createUser,
+  updateUser,
+  checkEmailAndPassword,
+} = require("../config/database");
 const { encryptString, getJWT } = require("../helper/helper");
 const jwt = require("jsonwebtoken");
 
@@ -12,15 +16,25 @@ const getUsers = async (req, res) => {
   }
 };
 
-const signupUser = async (req, res) => {
+// const signupUser = async (req, res) => {
+//   try {
+//     req.body.userpassword = await encryptString(req.body.userpassword);
+//     const response = await createUser(req.body);
+//     res.status(200).json("User signup successfully");
+//   } catch (error) {
+//     console.error(error);
+//     res.status(400).send(error.message);
+//   }
+// };
+
+const signupUser = async (body) => {
+  console.log("From signupuser: ", body);
   try {
-    req.body.userpassword = await encryptString(req.body.userpassword);
-    console.log(req.body.userpassword);
-    const response = await createUser(req.body);
-    res.status(200).json("User signup successfully");
+    body.userpassword = await encryptString(body.userpassword);
+    await createUser(body);
+    return "User signup successfully";
   } catch (error) {
-    console.error(error);
-    res.status(400).send(error.message);
+    throw new Error(error.message);
   }
 };
 
@@ -47,6 +61,13 @@ const loginUser = async (req, res) => {
   }
 };
 
+const updateUserData = async (req, res) => {
+  const mergedUser = { ...req.user[0], ...req.body };
+  console.log("Merged: ", mergedUser);
+  const response = await updateUser(mergedUser);
+  res.status(200).json("Updated successfully");
+};
+
 const getProfile = async (req, res) => {
   res.send(req.user);
 };
@@ -56,4 +77,5 @@ module.exports = {
   signupUser,
   loginUser,
   getProfile,
+  updateUserData,
 };

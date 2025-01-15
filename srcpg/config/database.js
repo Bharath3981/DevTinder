@@ -77,6 +77,41 @@ const createUser = async (userObj) => {
   }
 };
 
+const updateUser = async (userObj) => {
+  const {
+    firstname,
+    lastname,
+    useremail,
+    userpassword,
+    age,
+    gender,
+    city,
+    photourl,
+    about,
+    skills,
+  } = userObj;
+  try {
+    const response = await connectedPool.query(
+      "UPDATE tinder.users SET firstname = $1,lastname = $2,userpassword = $3,age = $4,gender = $5,city = $6,photourl = $7,about = $8,skills = $9 WHERE useremail = $10",
+      [
+        firstname,
+        lastname,
+        userpassword,
+        age,
+        gender,
+        city,
+        photourl || null,
+        about,
+        skills,
+        useremail,
+      ]
+    );
+    return response;
+  } catch (err) {
+    throw new Error(err);
+  }
+};
+
 const checkEmailAndPassword = async (useremail, userpassword) => {
   try {
     const response = await connectedPool.query(
@@ -131,4 +166,5 @@ module.exports = {
   createUser,
   checkEmailAndPassword,
   userAuth,
+  updateUser,
 };
