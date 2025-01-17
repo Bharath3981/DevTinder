@@ -143,21 +143,36 @@ const getUserDetailsByEmailId = async (emailId) => {
   return response.rows;
 };
 
-const userAuth = async (req, res, next) => {
+// const userAuth = async (req, res, next) => {
+//   try {
+//     const cookies = req.cookies;
+//     const { token } = cookies;
+//     console.log("userAuth called: ");
+//     if (!token) {
+//       throw new Error("Token is not valid");
+//     }
+//     const decodedObj = await jwt.verify(token, "devTinder");
+//     const { useremail } = decodedObj;
+//     const user = await getUserDetailsByEmailId(useremail);
+//     req.user = user;
+//     next();
+//   } catch (err) {
+//     res.status(400).send("ERROR: " + err.message);
+//   }
+// };
+
+const userAuth = async (req) => {
   try {
     const cookies = req.cookies;
     const { token } = cookies;
-    console.log("userAuth called: ");
     if (!token) {
       throw new Error("Token is not valid");
     }
     const decodedObj = await jwt.verify(token, "devTinder");
     const { useremail } = decodedObj;
-    const user = await getUserDetailsByEmailId(useremail);
-    req.user = user;
-    next();
+    return await getUserDetailsByEmailId(useremail);
   } catch (err) {
-    res.status(400).send("ERROR: " + err.message);
+    throw new Error("ERROR: " + err.message);
   }
 };
 module.exports = {
