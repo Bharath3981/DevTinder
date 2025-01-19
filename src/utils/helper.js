@@ -1,7 +1,7 @@
 const validator = require("validator");
 const bcrypt = require("bcrypt");
 const User = require("../config/models/user");
-
+const jwt = require("jsonwebtoken");
 const encryptString = async (someString) => {
   const stringHash = await bcrypt.hash(someString, 10);
   return stringHash;
@@ -20,6 +20,10 @@ const comparePassword = async (enteredPass, emailId) => {
   }
 };
 
+const comparePass = async (password1, passwordHash) => {
+  return await bcrypt.compare(password1, passwordHash);
+};
+
 const validateSignUpData = (req) => {
   const { firstName, lastName, emailId, password } = req.body;
   if (!firstName || !lastName) {
@@ -31,15 +35,40 @@ const validateSignUpData = (req) => {
   }
 };
 
+const validatePassword = (password) => {
+  if (!validator.isStrongPassword(password)) {
+    throw new Error("Please enter a strong password!");
+  } else {
+    return true;
+  }
+};
+
+const validateProfileEditData = (req) => {
+  const allowedEditFields = [
+    "firstName",
+    "lastName",
+    "photoUrl",
+    "gender",
+    "age",
+    "about",
+    "skills",
+    "city",
+  ];
+  const isEditAllowed = Object.keys(req.body).every((field) =>
+    allowedEditFields.includes(field)
+  );
+  return isEditAllowed;
+};
+
 const userAuth = async (req, res, next) => {
   try {
     const cookies = req.cookies;
     const { token } = cookies;
     console.log("userAuth called");
     if (!token) {
-      throw new Error("Token is not valid");
+      throw new Error("Please login again");
     }
-    const decodedObj = await jwt.verify(token, "devTinder");
+    const decodedObj = jwt.verify(token, "devTinder");
     const { _id } = decodedObj;
     const user = await User.findById(_id);
     if (!user) {
@@ -48,7 +77,7 @@ const userAuth = async (req, res, next) => {
     req.user = user;
     next();
   } catch (err) {
-    res.status(400).send("ERROR: " + err.message);
+    res.status(400).send("ERROR: " + err);
   }
 };
 
@@ -59,4 +88,7 @@ module.exports = {
   validateSignUpData,
   encryptString,
   comparePassword,
+  validateProfileEditData,
+  comparePass,
+  validatePassword,
 };
