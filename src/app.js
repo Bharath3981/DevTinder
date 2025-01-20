@@ -20,7 +20,7 @@ app.use("/", (err, req, res, next) => {
 
 app.use("/auth", authRouter);
 app.use("/profile", profileRouter);
-app.use("/", requestRouter);
+app.use("/request", requestRouter);
 
 app.get("/user", userAuth, async (req, res) => {
   try {

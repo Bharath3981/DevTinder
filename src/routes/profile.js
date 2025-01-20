@@ -1,5 +1,4 @@
 const express = require("express");
-const User = require("../config/models/user");
 const encryptString = require("../utils/encryptStrings");
 const {
   userAuth,

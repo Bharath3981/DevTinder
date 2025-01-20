@@ -64,7 +64,6 @@ const userAuth = async (req, res, next) => {
   try {
     const cookies = req.cookies;
     const { token } = cookies;
-    console.log("userAuth called");
     if (!token) {
       throw new Error("Please login again");
     }
