@@ -73,21 +73,18 @@ requestRouter.post("/review/:status/:requestId", userAuth, async (req, res) => {
       });
     }
     // Check if the request exists
-    const connectionRequest = await ConnectionRequestModel.find({
+    const connectionRequest = await ConnectionRequestModel.findOne({
       _id: requestId,
       status: "interested",
       receiver: userId,
     });
-    if (!connectionRequest.length) {
+    if (!connectionRequest) {
       return res.status(404).json({
         message: "Request not found with id: " + requestId,
       });
     }
     // Check if the request is for the user
-    if (
-      connectionRequest.length &&
-      connectionRequest.receiver.toString() !== userId.toString()
-    ) {
+    if (connectionRequest.receiver.toString() !== userId.toString()) {
       return res.status(400).json({
         message: "You are not authorized to review this request",
       });
