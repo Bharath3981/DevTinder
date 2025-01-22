@@ -6,6 +6,7 @@ const cookieParser = require("cookie-parser");
 const authRouter = require("./routes/auth");
 const profileRouter = require("./routes/profile");
 const requestRouter = require("./routes/requests");
+const userRouter = require("./routes/user");
 
 const app = express();
 
@@ -21,19 +22,20 @@ app.use("/", (err, req, res, next) => {
 app.use("/auth", authRouter);
 app.use("/profile", profileRouter);
 app.use("/request", requestRouter);
+app.use("/user", userRouter);
 
-app.get("/user", userAuth, async (req, res) => {
-  try {
-    const user = req.user;
-    if (user.length) {
-      res.send(user);
-    } else {
-      res.status(404).send("User not found with emailId: " + req.body.emailId);
-    }
-  } catch (err) {
-    res.status(400).send("Something went wrong: " + err.errmsg);
-  }
-});
+// app.get("/user", userAuth, async (req, res) => {
+//   try {
+//     const user = req.user;
+//     if (user.length) {
+//       res.send(user);
+//     } else {
+//       res.status(404).send("User not found with emailId: " + req.body.emailId);
+//     }
+//   } catch (err) {
+//     res.status(400).send("Something went wrong: " + err.errmsg);
+//   }
+// });
 app.get("/feed", async (req, res) => {
   try {
     const users = await User.find({});
