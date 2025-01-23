@@ -5,9 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node src/app.js",
-    "dev": "nodemon src/app.js",
-    "devpg": "nodemon srcpg/index.js",
-    "devpgg": "nodemon srcpg/indexg.js"
+    "dev": "nodemon src/app.js"
   },
   "keywords": [
     "nodejs",
@@ -16,15 +14,17 @@
   "author": "Bharath",
   "license": "ISC",
   "dependencies": {
+    "@apollo/server": "^4.11.3",
     "bcrypt": "^5.1.1",
     "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
     "express": "^4.21.2",
-    "@apollo/server": "^4.11.3",
     "graphql": "^16.10.0",
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.12.0",
     "mongoose": "^8.9.4",
     "pg": "^8.13.1",
+    "react-toastify": "^11.0.3",
     "validator": "^13.12.0"
   }
 }

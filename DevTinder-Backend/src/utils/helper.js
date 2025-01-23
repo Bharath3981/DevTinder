@@ -76,8 +76,16 @@ const userAuth = async (req, res, next) => {
     req.user = user;
     next();
   } catch (err) {
-    res.status(400).send(`ERROR: ${err}`);
+    generateResponse(res, 401, err.message);
   }
+};
+
+//Generate success or error response
+const generateResponse = (res, statusCode, message, data = {}) => {
+  res.status(statusCode).json({
+    message,
+    data,
+  });
 };
 
 const isAuthorizedRequest = (req) => {};
@@ -90,4 +98,5 @@ module.exports = {
   validateProfileEditData,
   comparePass,
   validatePassword,
+  generateResponse,
 };

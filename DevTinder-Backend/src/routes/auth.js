@@ -5,6 +5,7 @@ const {
   validateSignUpData,
   comparePassword,
   userAuth,
+  generateResponse,
 } = require("../utils/helper");
 
 const authRouter = express.Router();
@@ -33,12 +34,12 @@ authRouter.post("/login", async (req, res) => {
       res.cookie("token", await user.getJWT(), {
         expires: new Date(Date.now() + 1 * 3600000),
       }); // Expires in 1 day
-      res.send("Login Successfull!!");
+      generateResponse(res, 200, "Login Successfull!!", user);
     } else {
       throw new Error("Email or password invalid");
     }
   } catch (err) {
-    res.status(400).send("Something went wrong: " + err);
+    generateResponse(res, 400, err.message);
   }
 });
 

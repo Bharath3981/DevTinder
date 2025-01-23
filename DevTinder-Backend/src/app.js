@@ -1,8 +1,9 @@
 const express = require("express");
 const connectDB = require("./config/database");
 const User = require("./config/models/user");
-const { userAuth } = require("./utils/helper");
+const { userAuth, generateResponse } = require("./utils/helper");
 const cookieParser = require("cookie-parser");
+const cors = require("cors");
 const authRouter = require("./routes/auth");
 const profileRouter = require("./routes/profile");
 const requestRouter = require("./routes/requests");
@@ -10,6 +11,12 @@ const userRouter = require("./routes/user");
 
 const app = express();
 
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  })
+);
 app.use(express.json());
 app.use(cookieParser());
 
@@ -41,7 +48,7 @@ app.get("/feed", async (req, res) => {
     const users = await User.find({});
     res.send(users);
   } catch (err) {
-    res.status(400).send("Something went wrong: " + err.errmsg);
+    generateResponse(res, 400, "Something went wrong: " + err.errmsg);
   }
 });
 app.delete("/user", async (req, res) => {
@@ -73,7 +80,11 @@ app.patch("/user", async (req, res) => {
     if (user) {
       res.send("User with id: " + req.body.userId + "  updated successfully!");
     } else {
-      res.status(404).send("User not found with userId: " + req.body.userId);
+      generateResponse(
+        res,
+        404,
+        "User not found with userId: " + req.body.userId
+      );
     }
   } catch (err) {
     res.status(400).send("Something went wrong: " + err.errmsg);
