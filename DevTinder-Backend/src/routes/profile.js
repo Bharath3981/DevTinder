@@ -5,15 +5,16 @@ const {
   validateProfileEditData,
   comparePass,
   validatePassword,
+  generateResponse,
 } = require("../utils/helper");
 const profileRouter = express.Router();
 
 profileRouter.get("/view", userAuth, async (req, res) => {
   try {
     const user = req.user;
-    res.status(200).send(user);
+    generateResponse(res, 200, "User details fetched", user);
   } catch (err) {
-    res.status(400).send("Something went wrong: " + err);
+    generateResponse(res, 400, "Something went wrong: " + err);
   }
 });
 
@@ -27,10 +28,10 @@ profileRouter.patch("/edit", userAuth, async (req, res) => {
         (key) => (loggedInUser[key] = req.body[key])
       );
       await loggedInUser.save();
-      res.status(200).send("Updated successfully");
+      generateResponse(res, 200, "Updated successfully", loggedInUser);
     }
   } catch (err) {
-    res.status(400).send("Error: " + err.message);
+    generateResponse(res, 400, "Error: " + err.message);
   }
 });
 

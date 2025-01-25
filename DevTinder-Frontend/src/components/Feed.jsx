@@ -8,7 +8,6 @@ import UserCard from "./UserCard";
 
 const Feed = () => {
   const feed = useSelector((store) => store.feed);
-  const user = useSelector((store) => store.user);
   const dispatch = useDispatch();
   //Implement feed fetch method
   const getUserFeed = async () => {
@@ -25,9 +24,7 @@ const Feed = () => {
   };
 
   useEffect(() => {
-    if (user) {
-      getUserFeed();
-    }
+    getUserFeed();
   }, []);
   return (
     <>

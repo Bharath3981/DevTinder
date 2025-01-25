@@ -1,9 +1,7 @@
-import React from "react";
-
-const UserCard = (props) => {
+import PropTypes from "prop-types";
+const UserCard = ({ user = {}, readOnly = false }) => {
   const { firstName, lastName, gender, photoUrl, skills, about, age, emailId } =
-    props?.user;
-  console.log(props.user);
+    user;
   return (
     <div>
       <div className="card bg-base-300 w-96 shadow-xl">
@@ -17,15 +15,33 @@ const UserCard = (props) => {
           <p>
             {age} {gender} {emailId}
           </p>
+          <p>{skills}</p>
           <p>{about}</p>
           <div className="card-actions justify-center">
-            <button className="btn btn-primary btn-sm">Ignore</button>
-            <button className="btn btn-secondary btn-sm">Interested</button>
+            <button disabled={readOnly} className="btn btn-primary btn-sm">
+              Ignore
+            </button>
+            <button disabled={readOnly} className="btn btn-secondary btn-sm">
+              Interested
+            </button>
           </div>
         </div>
       </div>
     </div>
   );
+};
+UserCard.propTypes = {
+  readOnly: PropTypes.bool,
+  user: PropTypes.shape({
+    firstName: PropTypes.string,
+    lastName: PropTypes.string,
+    gender: PropTypes.string,
+    photoUrl: PropTypes.string,
+    skills: PropTypes.arrayOf(PropTypes.string),
+    about: PropTypes.string,
+    age: PropTypes.number,
+    emailId: PropTypes.string,
+  }),
 };
 
 export default UserCard;

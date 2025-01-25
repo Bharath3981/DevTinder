@@ -22,8 +22,8 @@ const Body = () => {
       responseStatus = response.ok;
       const parseRes = await response.json();
       if (responseStatus) {
-        dispatch(addUser(parseRes));
-        navigate("/");
+        dispatch(addUser(parseRes.data));
+        //navigate("/");
       } else {
         navigate("/login");
         dispatch(removeUser(null));

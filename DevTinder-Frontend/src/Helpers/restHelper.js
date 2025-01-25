@@ -42,3 +42,15 @@ export const getFeed = async () => {
     credentials: "include",
   });
 };
+
+//Implement method to update user profile
+export const updateProfile = async (profile) => {
+  return await fetch(`${baseUrl}/profile/edit`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(profile),
+    credentials: "include",
+  });
+};
