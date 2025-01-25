@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { login } from "../Helpers/restHelper";
 import { useDispatch } from "react-redux";
-import { addUser } from "../Helpers/userSlice";
+import { addUser } from "../Helpers/Slices/userSlice";
 import { toastHelper } from "../Helpers/toastHelper";
 import { useNavigate } from "react-router-dom";
 
@@ -14,16 +14,18 @@ const Login = () => {
   //Handle login
   const handleLogin = async () => {
     let responseStatus = false;
-    const response = await login(emailId, password);
-    responseStatus = response.ok;
-    const parseRes = await response.json();
-    if (responseStatus) {
-      dispatch(addUser(parseRes.data));
-      navigate("/");
-    } else {
-      console.log("Error: ", parseRes);
+    try {
+      const response = await login(emailId, password);
+      responseStatus = response.ok;
+      const parseRes = await response.json();
+      if (responseStatus) {
+        dispatch(addUser(parseRes.data));
+        navigate("/");
+      }
+      toastHelper(responseStatus, parseRes);
+    } catch (error) {
+      toastHelper(false, error);
     }
-    toastHelper(responseStatus, parseRes);
   };
   return (
     <div className="flex justify-center mt-32">

@@ -12,22 +12,33 @@ export const login = async (emailId, password) => {
 };
 
 export const getProfile = async () => {
-  const response = await fetch(`${baseUrl}/auth/profile`, {
+  return await fetch(`${baseUrl}/profile/view`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${localStorage.getItem("token")}`,
     },
+    credentials: "include",
   });
-  return response;
 };
+
 export const logout = async () => {
   const response = await fetch(`${baseUrl}/auth/logout`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${localStorage.getItem("token")}`,
     },
+    credentials: "include",
   });
   return response;
+};
+
+//Implement method to fetch user feed
+export const getFeed = async () => {
+  return await fetch(`${baseUrl}/user/feed`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+  });
 };

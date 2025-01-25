@@ -3,7 +3,16 @@ const userRouter = express.Router();
 const User = require("../config/models/user");
 const { userAuth } = require("../utils/helper");
 const ConnectionRequestModel = require("../config/models/connectionRequest");
-
+const responseFields = [
+  "firstName",
+  "lastName",
+  "photoUrl",
+  "about",
+  "skills",
+  "age",
+  "gender",
+  "emailId",
+];
 //get all the pending connection requests
 userRouter.get("/requests/received", userAuth, async (req, res) => {
   try {
@@ -12,8 +21,8 @@ userRouter.get("/requests/received", userAuth, async (req, res) => {
       receiver: user._id,
       status: "interested",
     })
-      .populate("sender", ["firstName", "lastName", "emailId"])
-      .populate("receiver", ["firstName", "lastName", "emailId"]);
+      .populate("sender", responseFields)
+      .populate("receiver", responseFields);
 
     res.json({
       message: "Received requests",
@@ -32,8 +41,8 @@ userRouter.get("/connections", userAuth, async (req, res) => {
       $or: [{ sender: user._id }, { receiver: user._id }],
       status: "accepted",
     })
-      .populate("sender", ["firstName", "lastName", "emailId"])
-      .populate("receiver", ["firstName", "lastName", "emailId"]);
+      .populate("sender", responseFields)
+      .populate("receiver", responseFields);
 
     res.json({
       message: "your connections",
@@ -79,7 +88,7 @@ userRouter.get("/feed", userAuth, async (req, res) => {
     const users = await User.find({
       _id: { $nin: Array.from(hideuserFromFeed) },
     })
-      .select("firstName lastName emailId")
+      .select("firstName lastName photoUrl about skills age gender emailId")
       .skip((page - 1) * limit) // Skip the first n users
       .limit(limit); // Limit the number of users to be returned
     // const users = await User.find({
