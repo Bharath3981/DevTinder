@@ -88,8 +88,6 @@ const generateResponse = (res, statusCode, message, data = {}) => {
   });
 };
 
-const isAuthorizedRequest = (req) => {};
-
 module.exports = {
   userAuth,
   validateSignUpData,

@@ -54,3 +54,36 @@ export const updateProfile = async (profile) => {
     credentials: "include",
   });
 };
+
+//Implement metod to fetch user connections
+export const getConnections = async () => {
+  return await fetch(`${baseUrl}/user/connections`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+  });
+};
+
+//Implement method to send connection requests received
+export const receivedConnectionRequests = async () => {
+  return await fetch(`${baseUrl}/user/requests/received`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+  });
+};
+
+//Implement method to review connection requests sent
+export const reviewRequestsReceived = async (status, requestId) => {
+  return await fetch(`${baseUrl}/request/review/${status}/${requestId}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+  });
+};

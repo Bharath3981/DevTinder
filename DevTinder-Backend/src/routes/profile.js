@@ -47,10 +47,9 @@ profileRouter.post("/password", userAuth, async (req, res) => {
       loggedInUser.password = newPasswordHash;
       loggedInUser.save();
     }
-
-    res.status(200).send("Password updated successfully.!");
+    generateResponse(res, 200, "Password updated successfully");
   } catch (err) {
-    res.status(400).send("Error: " + err);
+    generateResponse(res, 400, "Error: " + err.message);
   }
 });
 

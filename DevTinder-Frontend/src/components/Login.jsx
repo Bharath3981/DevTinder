@@ -6,8 +6,8 @@ import { toastHelper } from "../Helpers/toastHelper";
 import { useNavigate } from "react-router-dom";
 
 const Login = () => {
-  const [emailId, setEmailId] = useState("bharath@gmail.com");
-  const [password, setPassword] = useState("Bharath@123");
+  const [emailId, setEmailId] = useState("pidaparthi@gmail.com");
+  const [password, setPassword] = useState("Sumanth@123");
   const dispatch = useDispatch();
   const navigate = useNavigate();
 

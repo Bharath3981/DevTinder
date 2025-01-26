@@ -1,7 +1,7 @@
 const express = require("express");
 const requestRouter = express.Router();
 const User = require("../config/models/user");
-const { userAuth } = require("../utils/helper");
+const { userAuth, generateResponse } = require("../utils/helper");
 const ConnectionRequestModel = require("../config/models/connectionRequest");
 
 requestRouter.post("/send/:status/:userId", userAuth, async (req, res) => {
@@ -12,16 +12,11 @@ requestRouter.post("/send/:status/:userId", userAuth, async (req, res) => {
     // Check if the status is valid
     const allowedStatus = ["ignore", "interested"];
     if (!allowedStatus.includes(status)) {
-      return res.status(400).json({
-        message: "Invalid status",
-        status: status,
-      });
+      return generateResponse(res, 400, "Invalid status");
     }
     //Check if the user is trying to send request to himself
     if (fromUserId === toUserId) {
-      return res.status(400).json({
-        message: "You can't send request to yourself",
-      });
+      return generateResponse(res, 400, "You can't send request to yourself");
     }
     // If there is a connection request already sent, then update the status
     const existingRequest = await ConnectionRequestModel.findOne({
@@ -31,17 +26,17 @@ requestRouter.post("/send/:status/:userId", userAuth, async (req, res) => {
       ],
     });
     if (existingRequest) {
-      return res.status(400).json({
-        message: "Request already sent",
-        data: existingRequest,
-      });
+      return generateResponse(
+        res,
+        400,
+        "Request already sent",
+        existingRequest
+      );
     }
     // Check if the user exists
     const isToUserExists = await User.findById(toUserId);
     if (!isToUserExists) {
-      return res.status(404).json({
-        message: "User not found with id: " + toUserId,
-      });
+      return generateResponse(res, 404, "User not found with id: " + toUserId);
     }
     // Create a new connection request
     const connectionRequest = new ConnectionRequestModel({
@@ -50,12 +45,9 @@ requestRouter.post("/send/:status/:userId", userAuth, async (req, res) => {
       status: status,
     });
     const data = await connectionRequest.save();
-    res.json({
-      message: "Request sent successfully!",
-      data: data,
-    });
+    generateResponse(res, 200, "Request sent successfully!", data);
   } catch (err) {
-    res.status(400).send("Something went wrong: " + err);
+    generateResponse(res, 400, "Something went wrong: " + err);
   }
 });
 
@@ -79,25 +71,22 @@ requestRouter.post("/review/:status/:requestId", userAuth, async (req, res) => {
       receiver: userId,
     });
     if (!connectionRequest) {
-      return res.status(404).json({
-        message: "Request not found with id: " + requestId,
-      });
+      generateResponse(res, 404, "Request not found with id: " + requestId);
     }
     // Check if the request is for the user
     if (connectionRequest.receiver.toString() !== userId.toString()) {
-      return res.status(400).json({
-        message: "You are not authorized to review this request",
-      });
+      generateResponse(
+        res,
+        400,
+        "You are not authorized to review this request"
+      );
     }
     // Update the request status
     connectionRequest.status = status;
     const data = await connectionRequest.save();
-    res.json({
-      message: "Request " + status + " successfully!",
-      data: data,
-    });
+    generateResponse(res, 200, "Request " + status + " successfully!", data);
   } catch (err) {
-    res.status(400).send("Something went wrong: " + err);
+    generateResponse(res, 400, "Something went wrong: " + err);
   }
 });
 

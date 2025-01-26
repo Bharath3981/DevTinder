@@ -1,7 +1,7 @@
 const express = require("express");
 const userRouter = express.Router();
 const User = require("../config/models/user");
-const { userAuth } = require("../utils/helper");
+const { userAuth, generateResponse } = require("../utils/helper");
 const ConnectionRequestModel = require("../config/models/connectionRequest");
 const responseFields = [
   "firstName",
@@ -43,13 +43,9 @@ userRouter.get("/connections", userAuth, async (req, res) => {
     })
       .populate("sender", responseFields)
       .populate("receiver", responseFields);
-
-    res.json({
-      message: "your connections",
-      data: requests,
-    });
+    generateResponse(res, 200, "your connections", requests);
   } catch (err) {
-    res.status(400).send("Something went wrong: " + err);
+    generateResponse(res, 400, "Something went wrong: " + err.errmsg);
   }
 });
 
@@ -94,12 +90,9 @@ userRouter.get("/feed", userAuth, async (req, res) => {
     // const users = await User.find({
     //   _id: { $nin: Array.from(hideuserFromFeed) },
     // }).select("firstName lastName emailId");
-    res.json({
-      message: "Feed",
-      data: users,
-    });
+    generateResponse(res, 200, "Feed", users);
   } catch (err) {
-    res.status(400).send("Something went wrong: " + err.errmsg);
+    generateResponse(res, 400, "Something went wrong: " + err.errmsg);
   }
 });
 
