@@ -1,4 +1,6 @@
 const express = require("express");
+const multer = require("multer");
+const path = require("path");
 const userRouter = express.Router();
 const User = require("../config/models/user");
 const { userAuth, generateResponse } = require("../utils/helper");
@@ -13,6 +15,17 @@ const responseFields = [
   "gender",
   "emailId",
 ];
+// Set up multer for file uploads
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "uploads"); // Specify the destination directory
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + path.extname(file.originalname)); // Specify the file name
+  },
+});
+const upload = multer({ storage: storage });
+
 //get all the pending connection requests
 userRouter.get("/requests/received", userAuth, async (req, res) => {
   try {
@@ -48,6 +61,28 @@ userRouter.get("/connections", userAuth, async (req, res) => {
     generateResponse(res, 400, "Something went wrong: " + err.errmsg);
   }
 });
+
+//Implement the route to upload files
+userRouter.post(
+  "/upload",
+  userAuth,
+  upload.single("files"),
+  async (req, res) => {
+    try {
+      const user = req.user;
+      if (!req.file) {
+        return generateResponse(res, 400, "No file uploaded");
+      }
+      console.log("Req files: ", req.file);
+      let path = "user/" + req.file.path;
+      user.photoUrl = path;
+      await user.save();
+      generateResponse(res, 200, "Photo uploaded successfully", user);
+    } catch (err) {
+      generateResponse(res, 400, "Something went wrong: " + err.errmsg);
+    }
+  }
+);
 
 //implement feed route
 //Enable pagenation for the feed route

@@ -8,6 +8,7 @@ const authRouter = require("./routes/auth");
 const profileRouter = require("./routes/profile");
 const requestRouter = require("./routes/requests");
 const userRouter = require("./routes/user");
+const path = require("path");
 
 const app = express();
 
@@ -20,6 +21,12 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 
+// Serve static files from the 'uploads' directory
+app.use(
+  "/user/uploads",
+  userAuth,
+  express.static(path.join(__dirname, "..", "uploads"))
+);
 app.use("/", (err, req, res, next) => {
   if (err) {
     res.status(500).send("Something went wrong.!");

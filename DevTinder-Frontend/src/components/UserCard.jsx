@@ -1,4 +1,5 @@
 import PropTypes from "prop-types";
+import { baseUrl } from "../Helpers/restHelper";
 const UserCard = ({ user = {}, readOnly = false }) => {
   const { firstName, lastName, gender, photoUrl, skills, about, age, emailId } =
     user;
@@ -6,7 +7,7 @@ const UserCard = ({ user = {}, readOnly = false }) => {
     <div>
       <div className="card bg-base-300 w-96 shadow-xl">
         <figure>
-          <img src={photoUrl} alt="Shoes" />
+          <img src={baseUrl + "/" + photoUrl} alt="Shoes" />
         </figure>
         <div className="card-body">
           <h2 className="card-title">

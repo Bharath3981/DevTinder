@@ -1,4 +1,4 @@
-const baseUrl = "http://localhost:3000";
+export const baseUrl = "http://localhost:3000";
 
 export const login = async (emailId, password) => {
   return await fetch(`${baseUrl}/auth/login`, {
@@ -79,7 +79,7 @@ export const receivedConnectionRequests = async () => {
 
 //Implement method to review connection requests sent
 export const reviewRequestsReceived = async (status, requestId) => {
-  return await fetch(`${baseUrl}/request/review/${status}/${requestId}`, {
+  return await fetch(`${baseUrl}/request/review /${status}/${requestId}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
