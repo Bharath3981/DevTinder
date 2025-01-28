@@ -61,6 +61,7 @@ const Login = () => {
             </label>
           </div>
           <div className="card-actions justify-end mt-3">
+            <a className="link link-accent">Signup</a>
             <button className="btn btn-primary btn-outline btn-sm">
               Reset
             </button>

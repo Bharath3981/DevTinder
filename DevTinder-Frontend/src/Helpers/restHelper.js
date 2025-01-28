@@ -87,3 +87,14 @@ export const reviewRequestsReceived = async (status, requestId) => {
     credentials: "include",
   });
 };
+
+//Implement method to upload profile photo
+export const uploadProfilePhoto = async (photo) => {
+  const formData = new FormData();
+  formData.append("profilePhoto", photo);
+  return await fetch(`${baseUrl}/user/upload`, {
+    method: "POST",
+    body: formData,
+    credentials: "include",
+  });
+};

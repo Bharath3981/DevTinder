@@ -1,66 +1,23 @@
 import { useState } from "react";
-import PropTypes from "prop-types";
-import UserCard from "./UserCard";
-import { updateProfile, uploadProfilePhoto } from "../Helpers/restHelper";
-import { toastHelper } from "../Helpers/toastHelper";
-import { useDispatch } from "react-redux";
-import { addUser } from "../Helpers/Slices/userSlice";
 
-const EditProfile = ({ user }) => {
-  const [firstName, setFirstName] = useState(user.firstName);
-  const [lastName, setLastName] = useState(user.lastName);
-  const [gender, setGender] = useState(user.gender);
-  const [age, setAge] = useState(user.age);
-  const [about, setAbout] = useState(user.about);
-  const [photoUrl, setPhotoUrl] = useState(user.photoUrl);
-  const dispatch = useDispatch();
-
-  //Implement method to update user profile
-  const updateUserProfile = async () => {
-    const profile = {
-      firstName,
-      lastName,
-      gender,
-      age,
-      about,
-      photoUrl,
-    };
-    //Call updateProfile method from restHelper
-    try {
-      let responseStatus = false;
-      const response = await updateProfile(profile);
-      responseStatus = response.ok;
-      const parseRes = await response.json();
-      if (responseStatus) {
-        dispatch(addUser(parseRes.data));
-      }
-      toastHelper(responseStatus, parseRes);
-    } catch (error) {
-      toastHelper(false, error);
-    }
-  };
-
-  const onProfilePhotoUpload = async (file) => {
-    console.log(file);
-    try {
-      const response = await uploadProfilePhoto(file);
-      const parseRes = await response.json();
-      if (response.ok) {
-        setPhotoUrl(parseRes.data.photoUrl);
-      } else {
-        toastHelper(false, parseRes);
-      }
-    } catch (error) {
-      toastHelper(false, error);
-    }
-  };
+const Signup = () => {
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [emailId, setEmailId] = useState("");
+  const [password, setPassword] = useState("");
+  const [age, setAge] = useState(18);
+  const [gender, setGender] = useState("male");
+  const [photoUrl, setPhotoUrl] = useState("");
+  const [skills, setSkills] = useState([]);
+  const [about, setAbout] = useState("");
+  const [city, setCity] = useState("");
 
   return (
-    <div>
-      <div className="flex justify-center mt-32 gap-5">
-        <div className="card bg-base-300 w-96 shadow-xl">
-          <div className="card-body">
-            <h2 className="card-title justify-center">Edit Profile</h2>
+    <div className="flex justify-center mt-10">
+      <div className="card bg-base-300 w-[80%] shadow-xl">
+        <div className="card-body">
+          <h2 className="card-title justify-center">Signup</h2>
+          <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="form-control w-full max-w-xs">
                 <div className="label">
@@ -70,11 +27,11 @@ const EditProfile = ({ user }) => {
                   type="text"
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
+                  placeholder="First Name"
                   className="input input-bordered w-full max-w-xs input-sm"
                 />
               </label>
             </div>
-
             <div>
               <label className="form-control w-full max-w-xs">
                 <div className="label">
@@ -84,38 +41,53 @@ const EditProfile = ({ user }) => {
                   type="text"
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
+                  placeholder="Last Name"
                   className="input input-bordered w-full max-w-xs input-sm"
                 />
               </label>
             </div>
-
             <div>
               <label className="form-control w-full max-w-xs">
                 <div className="label">
-                  <span className="label-text">Photo URL</span>
+                  <span className="label-text">Email Id</span>
                 </div>
                 <input
-                  type="file"
-                  onChange={(e) => onProfilePhotoUpload(e.target.files[0])}
-                  className="file-input file-input-sm file-input-bordered w-full max-w-xs"
+                  type="text"
+                  value={emailId}
+                  onChange={(e) => setEmailId(e.target.value)}
+                  placeholder="Email Id"
+                  className="input input-bordered w-full max-w-xs input-sm"
                 />
               </label>
             </div>
-
+            <div>
+              <label className="form-control w-full max-w-xs">
+                <div className="label">
+                  <span className="label-text">Password</span>
+                </div>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Password"
+                  className="input input-bordered w-full max-w-xs input-sm"
+                />
+              </label>
+            </div>
             <div>
               <label className="form-control w-full max-w-xs">
                 <div className="label">
                   <span className="label-text">Age</span>
                 </div>
                 <input
-                  type="text"
+                  type="number"
                   value={age}
                   onChange={(e) => setAge(e.target.value)}
+                  placeholder="Age"
                   className="input input-bordered w-full max-w-xs input-sm"
                 />
               </label>
             </div>
-
             <div>
               <label className="form-control w-full max-w-xs">
                 <div className="label">
@@ -158,7 +130,37 @@ const EditProfile = ({ user }) => {
                 </div>
               </label>
             </div>
-
+            <div>
+              <label className="form-control w-full max-w-xs">
+                <div className="label">
+                  <span className="label-text">Photo Url</span>
+                </div>
+                <input
+                  type="text"
+                  value={photoUrl}
+                  onChange={(e) => setPhotoUrl(e.target.value)}
+                  placeholder="Photo Url"
+                  className="input input-bordered w-full max-w-xs input-sm"
+                />
+              </label>
+            </div>
+            <div>
+              <label className="form-control w-full max-w-xs">
+                <div className="label">
+                  <span className="label-text">Skills</span>
+                </div>
+                <input
+                  type="text"
+                  value={skills}
+                  onChange={(e) => {
+                    const skillArray = e.target.value.split(",");
+                    setSkills(skillArray);
+                  }}
+                  placeholder="Add skills with comma separated"
+                  className="input input-bordered w-full max-w-xs input-sm"
+                />
+              </label>
+            </div>
             <div>
               <label className="form-control w-full max-w-xs">
                 <div className="label">
@@ -168,49 +170,37 @@ const EditProfile = ({ user }) => {
                   type="text"
                   value={about}
                   onChange={(e) => setAbout(e.target.value)}
+                  placeholder="About"
                   className="input input-bordered w-full max-w-xs input-sm"
                 />
               </label>
             </div>
-
-            <div className="card-actions justify-end mt-3">
-              <button className="btn btn-primary btn-outline btn-sm">
-                Reset
-              </button>
-              <button
-                className="btn btn-primary btn-sm"
-                onClick={updateUserProfile}
-              >
-                Save
-              </button>
+            <div>
+              <label className="form-control w-full max-w-xs">
+                <div className="label">
+                  <span className="label-text">City</span>
+                </div>
+                <input
+                  type="text"
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                  placeholder="City"
+                  className="input input-bordered w-full max-w-xs input-sm"
+                />
+              </label>
             </div>
           </div>
+
+          <div className="card-actions justify-end mt-3">
+            <button className="btn btn-primary btn-outline btn-sm">
+              Reset
+            </button>
+            <button className="btn btn-primary btn-sm">Save</button>
+          </div>
         </div>
-        <UserCard
-          user={{
-            firstName,
-            lastName,
-            gender,
-            age,
-            about,
-            photoUrl,
-            skills: user.skills,
-          }}
-          readOnly={true}
-        ></UserCard>
       </div>
     </div>
   );
 };
-EditProfile.propTypes = {
-  user: PropTypes.shape({
-    firstName: PropTypes.string,
-    lastName: PropTypes.string,
-    gender: PropTypes.string,
-    age: PropTypes.number,
-    about: PropTypes.string,
-    photoUrl: PropTypes.string,
-    skills: PropTypes.arrayOf(PropTypes.string),
-  }).isRequired,
-};
-export default EditProfile;
+
+export default Signup;

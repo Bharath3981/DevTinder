@@ -66,7 +66,7 @@ userRouter.get("/connections", userAuth, async (req, res) => {
 userRouter.post(
   "/upload",
   userAuth,
-  upload.single("files"),
+  upload.single("profilePhoto"),
   async (req, res) => {
     try {
       const user = req.user;

@@ -4,6 +4,7 @@ import { useDispatch } from "react-redux";
 import { removeUser } from "../Helpers/Slices/userSlice";
 import { Link, useNavigate } from "react-router-dom";
 import { toastHelper } from "../Helpers/toastHelper";
+import { baseUrl } from "../Helpers/restHelper";
 
 const Navbar = () => {
   const user = useSelector((store) => store.user);
@@ -48,7 +49,7 @@ const Navbar = () => {
                 <div className="w-10 rounded-full">
                   <img
                     alt="Tailwind CSS Navbar component"
-                    src={user?.photoUrl}
+                    src={baseUrl + "/" + user.photoUrl}
                   />
                 </div>
               </div>
