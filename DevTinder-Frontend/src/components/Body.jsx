@@ -1,14 +1,15 @@
 import { Outlet } from "react-router-dom";
-import Navbar from "./Navbar";
-import Footer from "./Footer";
+import { lazy, Suspense, useEffect } from "react";
 import { getProfile } from "../Helpers/restHelper";
 import { useDispatch } from "react-redux";
 import { addUser, removeUser } from "../Helpers/Slices/userSlice";
 import { ToastContainer } from "react-toastify";
-import { useEffect } from "react";
 import { toastHelper } from "../Helpers/toastHelper";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
+
+const Navbar = lazy(() => import("./Navbar"));
+const Footer = lazy(() => import("./Footer"));
 
 const Body = () => {
   const dispatch = useDispatch();
@@ -41,9 +42,11 @@ const Body = () => {
   return (
     <>
       <ToastContainer />
-      <Navbar />
-      <Outlet />
-      <Footer />
+      <Suspense fallback={<div>Loading...</div>}>
+        <Navbar />
+        <Outlet />
+        <Footer />
+      </Suspense>
     </>
   );
 };
