@@ -9,6 +9,7 @@ const profileRouter = require("./routes/profile");
 const requestRouter = require("./routes/requests");
 const userRouter = require("./routes/user");
 const path = require("path");
+const swaggerJsdoc = require("./utils/swagger");
 
 const app = express();
 
@@ -103,8 +104,10 @@ connectDB()
     console.log("Database connection established");
     app.listen(3000, () => {
       console.log("Server is succesfully listening on port 3000");
+      swaggerJsdoc(app, 3000);
     });
   })
   .catch((err) => {
     console.error("Database connot be connected");
   });
+//

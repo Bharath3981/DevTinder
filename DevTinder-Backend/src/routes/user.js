@@ -26,7 +26,20 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-//get all the pending connection requests
+// Generate openapi docs for user routes
+/**
+ * @swagger
+ * /user/view:
+ *   get:
+ *     summary: Get user details
+ *     tags: [User]
+ *     description: Get the details of the logged in user
+ *     responses:
+ *       200:
+ *         description: User details fetched
+ *       400:
+ *         description: Something went wrong
+ */
 userRouter.get("/requests/received", userAuth, async (req, res) => {
   try {
     const user = req.user;
@@ -46,7 +59,7 @@ userRouter.get("/requests/received", userAuth, async (req, res) => {
   }
 });
 
-//get all the connection requests
+// Generate openapi docs for connections route
 userRouter.get("/connections", userAuth, async (req, res) => {
   try {
     const user = req.user;
@@ -62,7 +75,30 @@ userRouter.get("/connections", userAuth, async (req, res) => {
   }
 });
 
-//Implement the route to upload files
+// Generate openapi docs for upload route
+/**
+ * @swagger
+ * /user/upload:
+ *   post:
+ *     summary: Upload profile photo
+ *     tags: [User]
+ *     description: Upload profile photo for the logged in user
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               profilePhoto:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: Photo uploaded successfully
+ *       400:
+ *         description: No file uploaded
+ */
 userRouter.post(
   "/upload",
   userAuth,
@@ -84,8 +120,7 @@ userRouter.post(
   }
 );
 
-//implement feed route
-//Enable pagenation for the feed route
+//Generate openapi docs for feed route
 userRouter.get("/feed", userAuth, async (req, res) => {
   try {
     // User should seel all the user cards except

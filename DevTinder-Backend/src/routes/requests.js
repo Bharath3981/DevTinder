@@ -4,6 +4,20 @@ const User = require("../config/models/user");
 const { userAuth, generateResponse } = require("../utils/helper");
 const ConnectionRequestModel = require("../config/models/connectionRequest");
 
+//Generate openapi docs for request routes
+/**
+ * @swagger
+ * /request/received:
+ *   get:
+ *     summary: Get all the pending connection requests
+ *     tags: [Requests]
+ *     description: Get all the pending connection requests for the logged in user
+ *     responses:
+ *       200:
+ *         description: Received requests
+ *       400:
+ *         description: Something went wrong
+ */
 requestRouter.post("/send/:status/:userId", userAuth, async (req, res) => {
   try {
     const fromUserId = req.user._id;
@@ -51,6 +65,20 @@ requestRouter.post("/send/:status/:userId", userAuth, async (req, res) => {
   }
 });
 
+//Generate openapi docs for request routes
+/**
+ * @swagger
+ * /request/received:
+ *   get:
+ *     summary: Get all the pending connection requests
+ *     tags: [Requests]
+ *     description: Get all the pending connection requests for the logged in user
+ *     responses:
+ *       200:
+ *         description: Received requests
+ *       400:
+ *         description: Something went wrong
+ */
 requestRouter.post("/review/:status/:requestId", userAuth, async (req, res) => {
   try {
     const userId = req.user._id;
