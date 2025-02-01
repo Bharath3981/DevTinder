@@ -15,7 +15,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: "http://localhost",
     credentials: true,
   })
 );
@@ -39,18 +39,6 @@ app.use("/profile", profileRouter);
 app.use("/request", requestRouter);
 app.use("/user", userRouter);
 
-// app.get("/user", userAuth, async (req, res) => {
-//   try {
-//     const user = req.user;
-//     if (user.length) {
-//       res.send(user);
-//     } else {
-//       res.status(404).send("User not found with emailId: " + req.body.emailId);
-//     }
-//   } catch (err) {
-//     res.status(400).send("Something went wrong: " + err.errmsg);
-//   }
-// });
 app.get("/feed", async (req, res) => {
   try {
     const users = await User.find({});
