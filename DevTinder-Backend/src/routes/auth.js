@@ -58,9 +58,9 @@ authRouter.post("/signup", async (req, res) => {
     req.body.password = await encryptString(req.body.password);
     const user = new User(req.body);
     await user.save();
-    res.status(200).send("User saved successfully!");
+    generateResponse(res, 200, "User saved successfully!", user);
   } catch (err) {
-    res.status(400).send("Something went wrong: " + err);
+    generateResponse(res, 400, "Something went wrong: " + err);
   }
 });
 

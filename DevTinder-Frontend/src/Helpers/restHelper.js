@@ -95,6 +95,29 @@ export const reviewRequestsReceived = async (status, requestId) => {
   });
 };
 
+//Implement method to send connection request
+export const sendRequest = async (status, userId) => {
+  return await fetch(`${baseUrl}/request/send/${status}/${userId}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+  });
+};
+
+//Implement method to signup user
+export const signup = async (user) => {
+  return await fetch(`${baseUrl}/auth/signup`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(user),
+    credentials: "include",
+  });
+};
+
 //Implement method to upload profile photo
 export const uploadProfilePhoto = async (photo) => {
   const formData = new FormData();

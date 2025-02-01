@@ -46,7 +46,7 @@ const Connections = () => {
       <div className="flex justify-center flex-wrap">
         {connections.map((connection) => {
           const { firstName, lastName, about, _id, photoUrl, age, gender } =
-            connection.receiver;
+            connection;
           return (
             <div
               className="m-4 p-4 flex rounded-lg bg-base-300 w-1/2"

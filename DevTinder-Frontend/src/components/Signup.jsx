@@ -1,6 +1,9 @@
 import { useState } from "react";
+import PropTypes from "prop-types";
+import { signup } from "../Helpers/restHelper";
+import { toastHelper } from "../Helpers/toastHelper";
 
-const Signup = () => {
+const Signup = ({ toggleSignup }) => {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [emailId, setEmailId] = useState("");
@@ -12,9 +15,51 @@ const Signup = () => {
   const [about, setAbout] = useState("");
   const [city, setCity] = useState("");
 
+  //Implement method to reset all fields
+  const resetFields = () => {
+    setFirstName("");
+    setLastName("");
+    setEmailId("");
+    setPassword("");
+    setAge(18);
+    setGender("male");
+    setPhotoUrl("");
+    setSkills([]);
+    setAbout("");
+    setCity("");
+  };
+
+  //Implement method to save user
+  const saveUser = async () => {
+    const user = {
+      firstName,
+      lastName,
+      emailId,
+      about,
+      password,
+      city,
+      age,
+      gender,
+      skills,
+      photoUrl,
+    };
+    //Call signup method from restHelper
+    try {
+      let responseStatus = false;
+      const response = await signup(user);
+      responseStatus = response.ok;
+      const parseRes = await response.json();
+      resetFields();
+      toggleSignup(false);
+      toastHelper(responseStatus, parseRes);
+    } catch (error) {
+      toastHelper(false, error);
+    }
+  };
+
   return (
-    <div className="flex justify-center mt-10">
-      <div className="card bg-base-300 w-[80%] shadow-xl">
+    <div className="flex justify-center mt-1">
+      <div className="card bg-base-300 w-full shadow-xl">
         <div className="card-body">
           <h2 className="card-title justify-center">Signup</h2>
           <div className="grid grid-cols-2 gap-4">
@@ -192,15 +237,29 @@ const Signup = () => {
           </div>
 
           <div className="card-actions justify-end mt-3">
-            <button className="btn btn-primary btn-outline btn-sm">
+            <a className="link link-accent" onClick={() => toggleSignup(false)}>
+              Login
+            </a>
+            <button
+              className="btn btn-primary btn-outline btn-sm"
+              onClick={() => resetFields()}
+            >
               Reset
             </button>
-            <button className="btn btn-primary btn-sm">Save</button>
+            <button
+              className="btn btn-primary btn-sm"
+              onClick={() => saveUser()}
+            >
+              Save
+            </button>
           </div>
         </div>
       </div>
     </div>
   );
+};
+Signup.propTypes = {
+  toggleSignup: PropTypes.func.isRequired,
 };
 
 export default Signup;

@@ -64,12 +64,21 @@ userRouter.get("/connections", userAuth, async (req, res) => {
   try {
     const user = req.user;
     const requests = await ConnectionRequestModel.find({
-      $or: [{ sender: user._id }, { receiver: user._id }],
-      status: "accepted",
+      $or: [
+        { sender: user._id, status: "accepted" },
+        { receiver: user._id, status: "accepted" },
+      ],
     })
       .populate("sender", responseFields)
       .populate("receiver", responseFields);
-    generateResponse(res, 200, "your connections", requests);
+    const data = requests.map((row) => {
+      if (row.sender._id.toString() === user._id.toString()) {
+        return row.receiver;
+      }
+      return row.sender;
+    });
+
+    generateResponse(res, 200, "your connections", data);
   } catch (err) {
     generateResponse(res, 400, "Something went wrong: " + err.errmsg);
   }
