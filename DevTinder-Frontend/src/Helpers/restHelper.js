@@ -86,7 +86,7 @@ export const receivedConnectionRequests = async () => {
 
 //Implement method to review connection requests sent
 export const reviewRequestsReceived = async (status, requestId) => {
-  return await fetch(`${baseUrl}/request/review /${status}/${requestId}`, {
+  return await fetch(`${baseUrl}/request/review/${status}/${requestId}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
