@@ -1,5 +1,12 @@
-export const baseUrl = "http://localhost:3000";
+//Write the code to update base url based on the environment
+let baseUrl1 = "";
+if (!process.env.NODE_ENV || process.env.NODE_ENV === "development") {
+  baseUrl1 = "http://localhost:3000";
+} else {
+  baseUrl1 = "http://16.171.18.66:3981";
+}
 
+export const baseUrl = baseUrl1;
 export const login = async (emailId, password) => {
   return await fetch(`${baseUrl}/auth/login`, {
     method: "POST",
