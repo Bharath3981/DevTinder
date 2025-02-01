@@ -67,7 +67,7 @@ const userAuth = async (req, res, next) => {
     if (!token) {
       throw new Error("Please login again");
     }
-    const decodedObj = jwt.verify(token, "devTinder");
+    const decodedObj = jwt.verify(token, process.env.JWT_SECRET);
     const { _id } = decodedObj;
     const user = await User.findById(_id);
     if (!user) {

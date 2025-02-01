@@ -13,6 +13,8 @@ const swaggerJsdoc = require("./utils/swagger");
 
 const app = express();
 
+require("dotenv").config();
+
 app.use(
   cors({
     origin: ["http://localhost:5173"],
@@ -43,7 +45,7 @@ connectDB()
   .then(() => {
     console.log("Database connection established");
     app.listen(3981, () => {
-      console.log("Server is succesfully listening on port 3000");
+      console.log("Server is succesfully listening on port 3981");
       swaggerJsdoc(app, 3981);
     });
   })
