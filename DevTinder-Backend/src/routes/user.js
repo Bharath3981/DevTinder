@@ -109,7 +109,6 @@ userRouter.post(
       if (!req.file) {
         return generateResponse(res, 400, "No file uploaded");
       }
-      console.log("Req files: ", req.file);
       let path = "user/" + req.file.path;
       user.photoUrl = path;
       await user.save();
