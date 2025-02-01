@@ -92,7 +92,7 @@ connectDB()
     console.log("Database connection established");
     app.listen(3000, () => {
       console.log("Server is succesfully listening on port 3000");
-      swaggerJsdoc(app, 3000);
+      swaggerJsdoc(app, 3981);
     });
   })
   .catch((err) => {
