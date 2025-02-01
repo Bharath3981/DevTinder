@@ -49,8 +49,10 @@ const Signup = ({ toggleSignup }) => {
       const response = await signup(user);
       responseStatus = response.ok;
       const parseRes = await response.json();
-      resetFields();
-      toggleSignup(false);
+      if (responseStatus) {
+        resetFields();
+        toggleSignup(false);
+      }
       toastHelper(responseStatus, parseRes);
     } catch (error) {
       toastHelper(false, error);
