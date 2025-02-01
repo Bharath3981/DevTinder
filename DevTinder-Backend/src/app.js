@@ -90,7 +90,7 @@ app.patch("/user", async (req, res) => {
 connectDB()
   .then(() => {
     console.log("Database connection established");
-    app.listen(3000, () => {
+    app.listen(3981, () => {
       console.log("Server is succesfully listening on port 3000");
       swaggerJsdoc(app, 3981);
     });
