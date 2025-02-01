@@ -4,6 +4,7 @@ import { toastHelper } from "../Helpers/toastHelper";
 import { addRequest } from "../Helpers/Slices/requestsSlice";
 import { useEffect } from "react";
 import { reviewRequestsReceived } from "../Helpers/restHelper";
+import { baseUrl } from "../Helpers/restHelper";
 
 const Requests = () => {
   const dispatch = useDispatch();
@@ -69,7 +70,7 @@ const Requests = () => {
                 >
                   <div>
                     <img
-                      src={photoUrl}
+                      src={baseUrl + "/" + photoUrl}
                       className="w-50 h-20 rounded-lg"
                       alt="Photo"
                     />

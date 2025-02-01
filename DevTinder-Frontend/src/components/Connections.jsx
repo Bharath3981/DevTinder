@@ -4,6 +4,7 @@ import { toastHelper } from "../Helpers/toastHelper";
 import { useDispatch } from "react-redux";
 import { addConnections } from "../Helpers/Slices/connectionSlice";
 import { useSelector } from "react-redux";
+import { baseUrl } from "../Helpers/restHelper";
 
 const Connections = () => {
   const dispatch = useDispatch();
@@ -54,7 +55,7 @@ const Connections = () => {
             >
               <div>
                 <img
-                  src={photoUrl}
+                  src={baseUrl + "/" + photoUrl}
                   className="w-50 h-20 rounded-lg"
                   alt="Photo"
                 />
