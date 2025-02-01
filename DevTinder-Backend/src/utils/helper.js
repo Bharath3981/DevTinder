@@ -67,6 +67,7 @@ const userAuth = async (req, res, next) => {
     if (!token) {
       throw new Error("Please login again");
     }
+    console.log(token, process.env.JWT_SECRET);
     const decodedObj = jwt.verify(token, process.env.JWT_SECRET);
     const { _id } = decodedObj;
     const user = await User.findById(_id);
@@ -76,6 +77,7 @@ const userAuth = async (req, res, next) => {
     req.user = user;
     next();
   } catch (err) {
+    console.error(err);
     generateResponse(res, 401, err.message);
   }
 };
