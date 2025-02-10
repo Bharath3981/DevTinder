@@ -1,12 +1,6 @@
 const express = require("express");
-const encryptString = require("../utils/encryptStrings");
-const User = require("../config/models/user");
-const {
-  validateSignUpData,
-  comparePassword,
-  userAuth,
-  generateResponse,
-} = require("../utils/helper");
+
+const { signup, logout, login } = require("../controllers/auth");
 
 const authRouter = express.Router();
 
@@ -53,15 +47,7 @@ const authRouter = express.Router();
  *         description: Something went wrong
  */
 authRouter.post("/signup", async (req, res) => {
-  try {
-    validateSignUpData(req);
-    req.body.password = await encryptString(req.body.password);
-    const user = new User(req.body);
-    await user.save();
-    generateResponse(res, 200, "User saved successfully!", user);
-  } catch (err) {
-    generateResponse(res, 400, "Something went wrong: " + err);
-  }
+  signup(req, res);
 });
 
 // Write openapi docs for login route
@@ -90,24 +76,7 @@ authRouter.post("/signup", async (req, res) => {
  *         description: Invalid credentials
  */
 authRouter.post("/login", async (req, res) => {
-  try {
-    const { emailId, password } = req.body;
-    const user = await User.findOne({ emailId: emailId });
-    if (!user) {
-      throw new Error("Invalid creadentials");
-    }
-    const isValidPassword = await user.validatePassword(password);
-    if (isValidPassword) {
-      res.cookie("token", await user.getJWT(), {
-        expires: new Date(Date.now() + 1 * 3600000),
-      }); // Expires in 1 day
-      generateResponse(res, 200, "Login Successfull!!", user);
-    } else {
-      throw new Error("Email or password invalid");
-    }
-  } catch (err) {
-    generateResponse(res, 400, err.message);
-  }
+  login(req, res);
 });
 
 // Write openapi docs for logout route
@@ -123,10 +92,7 @@ authRouter.post("/login", async (req, res) => {
  *         description: Logout successful
  */
 authRouter.post("/logout", async (req, res) => {
-  res.cookie("token", null, {
-    expires: new Date(Date.now()),
-  });
-  generateResponse(res, 200, "Logged out successfully.");
+  logout(req, res);
 });
 
 module.exports = authRouter;

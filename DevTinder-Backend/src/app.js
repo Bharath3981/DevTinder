@@ -14,6 +14,7 @@ const swaggerJsdoc = require("./utils/swagger");
 const app = express();
 
 require("dotenv").config();
+require("./utils/cronjob");
 
 app.use(
   cors({
