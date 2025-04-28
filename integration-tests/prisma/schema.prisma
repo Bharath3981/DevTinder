@@ -1,0 +1,1407 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["views", "postgresqlExtensions", "fullTextSearch", "fullTextIndex"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Media {
+  id               String             @id
+  tags             String[]           @default([])
+  customParameters Json?
+  tenantId         Int
+  externalId       String?            @unique @db.VarChar(255)
+  expirationDate   DateTime
+  publishDate      DateTime           @default(now())
+  mediaTypeId      Int
+  trailers         String[]           @default([])
+  createdAt        DateTime           @default(now())
+  createdBy        String?            @db.VarChar(255)
+  updatedAt        DateTime?
+  lastPublishedAt  DateTime?
+  lastPublishedBy  String?            @db.VarChar(255)
+  updatedBy        String?            @db.VarChar(255)
+  deleted          Boolean?           @default(false)
+  isSynced         Boolean?           @default(true)
+  jwplayerMetadata Json?
+  network          String?            @db.VarChar(255)
+  Network          Networks?          @relation(fields: [network, tenantId], references: [language, tenantId])
+  auditInfoId      String?            @unique
+  auditInfo        AuditInfo?         @relation(fields: [auditInfoId], references: [id])
+  adBreaks         AdBreak[]
+  mediaTypes       MediaTypes         @relation(fields: [mediaTypeId], references: [id])
+  tenant           Tenant             @relation(fields: [tenantId], references: [id])
+  mediaBasicInfo   MediaBasicInfo[]
+  MediaTransaction MediaTransaction[]
+  thumbnailAsset   ThumbnailAsset[]
+  videoAsset       VideoAsset?
+  dynamicLink      DynamicLink[]
+
+  @@index([customParameters(ops: JsonbPathOps)], type: Gin)
+  @@index([externalId], type: Hash)
+}
+
+model MediaBasicInfo {
+  id           Int      @id @default(autoincrement())
+  title        String   @db.VarChar(255)
+  description  String?  @db.Text
+  programName  String?  @db.VarChar(255)
+  programId    String?  @db.VarChar(255)
+  language     String   @db.VarChar(255)
+  tenantId     Int
+  mediaId      String
+  languageInfo Language @relation(fields: [language, tenantId], references: [code, tenantId])
+  Media        Media    @relation(fields: [mediaId], references: [id])
+  tenant       Tenant   @relation(fields: [tenantId], references: [id])
+
+  @@index([mediaId, tenantId])
+}
+
+model AdBreak {
+  id          Int        @id @default(autoincrement())
+  slot        Int
+  seconds     Float
+  auditInfoId String?    @unique
+  auditInfo   AuditInfo? @relation(fields: [auditInfoId], references: [id])
+  mediaId     String
+  media       Media      @relation(fields: [mediaId], references: [id])
+
+  @@unique([mediaId, seconds])
+  @@index([mediaId])
+}
+
+model MediaTypes {
+  id                      Int                            @id @default(autoincrement())
+  mediaTypeName           String                         @db.VarChar(255)
+  defaultTags             String[]                       @default([])
+  assetType               AssetType                      @default(video)
+  allowOneLink            String                         @default("No")
+  tenantConfigId          Int
+  defaultCustomParameters Json?
+  fieldDefinitions        FieldDefinitionsOnMediaTypes[]
+  media                   Media[]
+  tenantConfig            TenantConfig                   @relation(fields: [tenantConfigId], references: [id])
+  VodMediaDetails         VodMediaDetails[]
+}
+
+model FieldDefinitionsOnMediaTypes {
+  mediaType         MediaTypes        @relation(fields: [mediaTypeId], references: [id])
+  mediaTypeId       Int
+  fieldDefinition   FieldsDefinitions @relation(fields: [fieldDefinitionId], references: [id])
+  fieldDefinitionId Int
+  assignedAt        DateTime          @default(now())
+  assignedBy        String
+  isUnique          Boolean           @default(false)
+  isMandate         Boolean           @default(false)
+  sectionName       String            @default("Additional Information")
+  fieldIndex        Int               @default(0)
+  sectionIndex      Int               @default(0)
+
+  @@id([mediaTypeId, fieldDefinitionId])
+}
+
+model FieldDefinitionsOnCollectionTypes {
+  collectionType    CollectionTypes   @relation(fields: [collectionTypeId], references: [id])
+  collectionTypeId  Int
+  fieldDefinition   FieldsDefinitions @relation(fields: [fieldDefinitionId], references: [id])
+  fieldDefinitionId Int
+  assignedAt        DateTime          @default(now())
+  assignedBy        String
+  isUnique          Boolean           @default(false)
+  isMandate         Boolean           @default(false)
+  sectionName       String            @default("Additional Information")
+  fieldIndex        Int               @default(0)
+  sectionIndex      Int               @default(0)
+
+  @@id([collectionTypeId, fieldDefinitionId])
+}
+
+enum Type {
+  MEDIA
+  COLLECTION
+  FEED
+}
+
+enum Action {
+  CREATE
+  UPDATE
+  DELETE
+}
+
+model AuditLogEnvelop {
+  id                    String      @id @default(cuid())
+  type                  String      @default("MEDIA") @db.VarChar(255)
+  recordId              String
+  sectionUpdatedDetails Json?
+  // defines type of activity User or Sync
+  activityType          String      @default("USER")
+  activityOn            DateTime    @default(now())
+  completedOn           DateTime?
+  activityBy            String      @db.VarChar(255)
+  status                SyncStatus?
+  version               Float       @default(0.001)
+  comments              String?     @db.VarChar(255)
+  // response payload from JW or Curator.
+  response              Json?
+
+  auditLogDetails AuditLogDetails[]
+  AuditLogErrors  AuditLogErrors[]
+}
+
+model AuditLogDetails {
+  id                String          @id @default(cuid())
+  action            Action
+  tableName         String          @db.VarChar(255)
+  payload           Json?
+  reponse           Json?
+  auditLogEnvelopId String
+  AuditLogEnvelop   AuditLogEnvelop @relation(fields: [auditLogEnvelopId], references: [id])
+}
+
+model AuditLogErrors {
+  id                String          @id @default(cuid())
+  errorCode         String          @db.VarChar(255)
+  errorMessage      String          @db.Text
+  auditLogEnvelopId String
+  AuditLogEnvelop   AuditLogEnvelop @relation(fields: [auditLogEnvelopId], references: [id])
+}
+
+model HomePageContent {
+  id                 String                 @id @default(cuid())
+  nameAlias          String
+  liveDate           DateTime?
+  status             HomePageContentStatus?
+  tenantId           Int
+  customParameters   Json?
+  auditInfoId        String?                @unique
+  auditInfo          AuditInfo?             @relation(fields: [auditInfoId], references: [id])
+  appConfigurationId String?
+  network            String?                @db.VarChar(255)
+  Network            Networks?              @relation(fields: [network, tenantId], references: [language, tenantId])
+  content            Content[]
+  tenant             Tenant                 @relation(fields: [tenantId], references: [id])
+  AppConfiguration   AppConfiguration?      @relation(fields: [appConfigurationId], references: [id])
+  createdAt          DateTime               @default(now())
+  createdBy          String?                @db.VarChar(255)
+  updatedAt          DateTime?
+  updatedBy          String?                @db.VarChar(255)
+}
+
+model client_configs {
+  id          String  @id @db.VarChar(12)
+  tenant_name String  @db.VarChar(50)
+  tenant_code String  @db.VarChar(10)
+  module_name String  @db.VarChar(50)
+  site_id     String?
+  key         String  @db.VarChar(50)
+  value       Json?
+}
+
+model Content {
+  id                String           @id @default(cuid())
+  enableText        Boolean          @default(false)
+  featured          Boolean          @default(false)
+  title             String?
+  type              String?
+  lockPosition      Boolean          @default(false)
+  displayContent    Boolean          @default(false)
+  isVirtualFeed     Boolean          @default(false)
+  position          Int?
+  feedId            String?
+  watchList         String?
+  homePageContentId String
+  curationPresetId  Int?
+  HomePageContent   HomePageContent? @relation(fields: [homePageContentId], references: [id])
+  CurationPreset    CurationPreset?  @relation(fields: [curationPresetId], references: [id])
+}
+
+model AppConfiguration {
+  id              String            @id @default(cuid())
+  name            String
+  tenantId        Int
+  createdAt       DateTime          @default(now())
+  createdBy       String?           @db.VarChar(255)
+  updatedAt       DateTime?         @updatedAt
+  updatedBy       String?           @db.VarChar(255)
+  configId        String?           @default("u0rnfuv8")
+  tenant          Tenant            @relation(fields: [tenantId], references: [id])
+  homePageContent HomePageContent[]
+}
+
+model Tenant {
+  id                  Int                   @id @default(autoincrement())
+  name                String                @db.VarChar(50)
+  groupName           String?               @db.VarChar(50)
+  tenantCode          String?               @db.VarChar(10)
+  siteId              String?               @db.VarChar(100)
+  secretKey           String?               @db.VarChar(255)
+  showCaseUrl         String?               @db.VarChar(100)
+  dynamicUrl          String?               @db.VarChar(100)
+  auditInfoId         String?               @unique
+  auditInfo           AuditInfo?            @relation(fields: [auditInfoId], references: [id])
+  collection          Collection[]
+  collectionBasicInfo CollectionBasicInfo[]
+  media               Media[]
+  MediaBasicInfo      MediaBasicInfo[]
+  tenantConfig        TenantConfig?
+  language            Language[]
+  fieldsDefinitions   FieldsDefinitions[]
+  Roles               Roles[]
+  User                TenantsOnUsers[]
+  SyncLogger          SyncLogger[]
+  HomePageContent     HomePageContent[]
+  AppConfiguration    AppConfiguration[]
+  TransactionLogs     TransactionLogs[]
+  createdAt           DateTime              @default(now())
+  createdBy           String?               @db.VarChar(255)
+  updatedAt           DateTime?
+  updatedBy           String?               @db.VarChar(255)
+  Networks            Networks[]
+  HpcSettings         HpcSettings[]
+  VirtualFeed         VirtualFeed[]
+  VirtualFeedConfig   VirtualFeedConfig[]
+  LiveEvents          LiveEvents[]
+
+  @@unique([tenantCode])
+}
+
+model HpcSettings {
+  tenantId         Int
+  tenant           Tenant   @relation(fields: [tenantId], references: [id])
+  networkId        Int
+  network          Networks @relation(fields: [networkId], references: [id])
+  continueWatchUrl String
+  favouritesUrl    String
+  createdBy        String
+  createdAt        DateTime @default(now())
+  updatedBy        String?
+  updatedAt        DateTime @updatedAt
+
+  @@id([tenantId, networkId])
+}
+
+model TenantsOnUsers {
+  userId   String
+  user     User   @relation(fields: [userId], references: [id])
+  tenantId Int
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+
+  @@id([userId, tenantId])
+}
+
+model Networks {
+  id                Int                 @id @default(autoincrement())
+  name              String              @db.VarChar(50)
+  default           Boolean
+  createdAt         DateTime            @default(now())
+  createdBy         String?             @db.VarChar(255)
+  updatedAt         DateTime?
+  updatedBy         String?             @db.VarChar(255)
+  language          String              @db.VarChar(10)
+  Language          Language            @relation(fields: [language, tenantId], references: [code, tenantId])
+  tenantId          Int
+  Tenant            Tenant              @relation(fields: [tenantId], references: [id])
+  Media             Media[]
+  Collection        Collection[]
+  Feed              Feed[]
+  HomePageContent   HomePageContent[]
+  HpcSettings       HpcSettings[]
+  VirtualFeedConfig VirtualFeedConfig[]
+  LiveEvents        LiveEvents[]
+  ClipInstances     ClipInstances[]
+
+  @@unique([language, tenantId])
+}
+
+model CurationPreset {
+  id             Int          @id @default(autoincrement())
+  referenceName  String
+  preset         String
+  tenantConfigId Int
+  tenantConfig   TenantConfig @relation(fields: [tenantConfigId], references: [id])
+  createdAt      DateTime     @default(now())
+  createdBy      String?      @db.VarChar(255)
+  updatedAt      DateTime?
+  updatedBy      String?      @db.VarChar(255)
+  Content        Content[]
+
+  @@index([tenantConfigId])
+}
+
+model TenantConfig {
+  id               Int               @id @default(autoincrement())
+  authorizationKey String?           @db.VarChar(255)
+  baseUrl          String?           @db.VarChar(255)
+  templateId       String?           @db.VarChar(255)
+  allowMediaUpload Boolean
+  tenantId         Int               @unique
+  thumbnailKeys    String[]          @default([])
+  timeZone         String            @default("America/New_York")
+  auditInfoId      String?           @unique
+  continueWatchUrl String?
+  favouritesUrl    String?
+  downloadsUrl     String?
+  auditInfo        AuditInfo?        @relation(fields: [auditInfoId], references: [id])
+  collectionTypes  CollectionTypes[]
+  mediaTypes       MediaTypes[]
+  tenant           Tenant            @relation(fields: [tenantId], references: [id])
+  createdAt        DateTime          @default(now())
+  createdBy        String?           @db.VarChar(255)
+  updatedAt        DateTime?
+  updatedBy        String?           @db.VarChar(255)
+  curationPresets  CurationPreset[]
+}
+
+model Language {
+  id                   Int                   @id @default(autoincrement())
+  label                String                @db.VarChar(50)
+  code                 String                @db.VarChar(10)
+  default              Boolean
+  auditInfoId          String?               @unique
+  auditInfo            AuditInfo?            @relation(fields: [auditInfoId], references: [id])
+  tenantId             Int
+  Tenant               Tenant                @relation(fields: [tenantId], references: [id])
+  collectionsBasicInfo CollectionBasicInfo[]
+  mediaBasicInfo       MediaBasicInfo[]
+  createdAt            DateTime              @default(now())
+  createdBy            String?               @db.VarChar(255)
+  updatedAt            DateTime?
+  updatedBy            String?               @db.VarChar(255)
+  Networks             Networks[]
+
+  @@unique([code, tenantId])
+}
+
+model MediaTransaction {
+  mediaId            String
+  mediaState         Json
+  previousMediaState Json?
+  updatedMediaState  Json?
+  id                 String     @id @default(uuid()) @db.Uuid
+  createdAt          DateTime?  @default(now())
+  createdBy          String     @db.VarChar(255)
+  syncStatus         SyncStatus @default(STARTED)
+  target             String?
+  source             String?
+  auditInfoId        String?    @unique
+  auditInfo          AuditInfo? @relation(fields: [auditInfoId], references: [id])
+  media              Media      @relation(fields: [mediaId], references: [id])
+  message            String?    @default("Transaction successfull.") @db.Text
+  stepNumber         Int?
+
+  @@index([mediaId])
+}
+
+model CollectionTransaction {
+  collectionId            String
+  collectionState         Json
+  previousCollectionState Json?
+  updatedCollectionState  Json?
+  id                      String     @id @default(uuid()) @db.Uuid
+  createdAt               DateTime?  @default(now())
+  createdBy               String     @db.VarChar(255)
+  syncStatus              SyncStatus @default(STARTED)
+  target                  String?
+  source                  String?
+  auditInfoId             String?    @unique
+  auditInfo               AuditInfo? @relation(fields: [auditInfoId], references: [id])
+  collection              Collection @relation(fields: [collectionId], references: [id])
+  message                 String?    @default("Transaction successfull.") @db.Text
+
+  @@index([collectionId])
+}
+
+model FeedTransaction {
+  feedId            String
+  feedState         Json
+  previousFeedState Json?
+  updatedFeedState  Json?
+  id                String     @id @default(uuid()) @db.Uuid
+  createdAt         DateTime?  @default(now())
+  createdBy         String     @db.VarChar(255)
+  syncStatus        SyncStatus @default(STARTED)
+  target            String?
+  source            String?
+  auditInfoId       String?    @unique
+  auditInfo         AuditInfo? @relation(fields: [auditInfoId], references: [id])
+  feed              Feed       @relation(fields: [feedId], references: [id])
+  message           String?    @default("Transaction successfull.") @db.Text
+
+  @@index([feedId])
+}
+
+enum SourceModel {
+  MEDIA
+  COLLECTION
+  FEED
+  HOME_PAGE_CONTENT
+}
+
+model TransactionLogs {
+  id                 String      @id @default(cuid())
+  currentState       Json
+  previousState      Json?
+  updatedState       Json?
+  relationId         String
+  transactionMessage String
+  createdAt          DateTime?   @default(now())
+  createdBy          String?     @db.VarChar(255)
+  tenantId           Int
+  Tenant             Tenant      @relation(fields: [tenantId], references: [id])
+  transactionStatus  SyncStatus  @default(STARTED)
+  target             String?     @default("JW")
+  source             String?     @default("BS")
+  relationModel      SourceModel @default(HOME_PAGE_CONTENT)
+
+  auditInfoId String?
+  auditInfo   AuditInfo? @relation(fields: [auditInfoId], references: [id])
+  updatedAt   DateTime?
+  updatedBy   String?    @db.VarChar(255)
+}
+
+model VideoAsset {
+  id                Int               @id @default(autoincrement())
+  mediaId           String            @unique
+  tenantId          Int
+  videoKey          String
+  videoUrl          String
+  deleted           Boolean?
+  publishDate       DateTime?
+  duration          Float?
+  isVideoReUploaded Boolean?          @default(false)
+  contentSource     CONTENT_SOURCE    @default(EXTERNAL)
+  media             Media             @relation(fields: [mediaId], references: [id])
+  videoResolutions  VideoResolution[]
+  imageResolutions  ImageResolution[]
+  audioTracks       AudioTrack[]
+  captions          Caption[]
+}
+
+// video resolutions
+model VideoResolution {
+  id          Int        @id @default(autoincrement())
+  resolution  String
+  videoUrl    String?
+  videoHeight String?
+  videoWidth  String?
+  videoId     Int
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  video       VideoAsset @relation(fields: [videoId], references: [id])
+
+  @@unique([videoId, resolution])
+}
+
+// image resolutions
+
+model ImageResolution {
+  id         Int        @id @default(autoincrement())
+  resolution String
+  imageUrl   String?
+  imgKey     String?
+  imageType  String?    @default("image/jpeg")
+  videoId    Int
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime?
+  video      VideoAsset @relation(fields: [videoId], references: [id])
+
+  @@unique([videoId, resolution, imageType])
+}
+
+// audio tracks 
+model AudioTrack {
+  id                      Int             @id @default(autoincrement())
+  language                String?
+  label                   String?
+  audioUrl                String?
+  videoId                 Int
+  contentSource           CONTENT_SOURCE? @default(EXTERNAL)
+  isAudioTracksReuploaded Boolean?        @default(false)
+  externalId              String?         @unique @db.VarChar(20)
+  createdAt               DateTime        @default(now())
+  updatedAt               DateTime?
+  deleted                 Boolean?        @default(false)
+  video                   VideoAsset      @relation(fields: [videoId], references: [id])
+
+  @@unique([videoId, language, deleted])
+}
+
+// captions 
+model Caption {
+  id                   Int             @id @default(autoincrement())
+  language             String?
+  label                String?
+  captionUrl           String?
+  contentSource        CONTENT_SOURCE? @default(EXTERNAL)
+  isCaptionsReuploaded Boolean?        @default(false)
+  externalId           String?         @unique @db.VarChar(20)
+  videoId              Int
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime?
+  deleted              Boolean?        @default(false)
+  video                VideoAsset      @relation(fields: [videoId], references: [id])
+
+  @@unique([videoId, language, deleted])
+}
+
+model RolesOnUsers {
+  user   User   @relation(fields: [userId], references: [id])
+  userId String
+  role   Roles  @relation(fields: [roleId], references: [id])
+  roleId Int
+
+  @@id([userId, roleId])
+}
+
+enum SourceFileType {
+  IMAGE
+  VIDEO
+  TRACK
+}
+
+model ThumbnailAsset {
+  id                    Int            @id @default(autoincrement())
+  mediaId               String
+  tenantId              Int
+  thumbnailKey          String
+  thumbnailUrl          String
+  externalId            String?
+  isThumbnailReuploaded Boolean?       @default(false)
+  deleted               Boolean?
+  publishDate           DateTime?
+  auditInfoId           String?        @unique
+  auditInfo             AuditInfo?     @relation(fields: [auditInfoId], references: [id])
+  contentSource         CONTENT_SOURCE @default(EXTERNAL)
+  media                 Media          @relation(fields: [mediaId], references: [id])
+
+  // @@unique([thumbnailKey, mediaId])
+  @@index([thumbnailKey, mediaId])
+}
+
+model DynamicLink {
+  id                    String         @id @default(cuid())
+  campaignName          String
+  campaignSource        CampaignSource
+  campaignMedium        CampaignMedium
+  previewTitle          String?
+  previewSocialImageUrl String?
+  previewDescription    String?        @db.Text
+  shortUrl              String?
+  isDynamicLinkUpdated  Boolean?       @default(false)
+  mediaId               String
+  contentSource         CONTENT_SOURCE @default(EXTERNAL)
+  media                 Media          @relation(fields: [mediaId], references: [id])
+}
+
+model CollectionTypes {
+  id                      Int                                 @id @default(autoincrement())
+  collectionName          String                              @db.VarChar(255)
+  contentType             ContentType                         @default(collection)
+  listType                String
+  allowOneLink            Boolean                             @default(false)
+  placeHolder             Boolean                             @default(false)
+  tenantConfigId          Int
+  defaultTags             String[]                            @default([])
+  defaultCustomParameters Json?
+  fieldDefinitions        FieldDefinitionsOnCollectionTypes[]
+  collection              Collection[]
+  tenantConfig            TenantConfig                        @relation(fields: [tenantConfigId], references: [id])
+}
+
+model CollectionThumbnailAsset {
+  id                    Int             @id @default(autoincrement())
+  collectionId          String
+  tenantId              Int
+  thumbnailKey          String
+  thumbnailUrl          String
+  externalId            String?
+  isThumbnailReuploaded Boolean?        @default(false)
+  deleted               Boolean?
+  contentSource         CONTENT_SOURCE? @default(EXTERNAL)
+
+  publishDate DateTime?
+  collection  Collection @relation(fields: [collectionId], references: [id])
+}
+
+model Collection {
+  id                       String                     @id @default(cuid()) @db.VarChar(255)
+  publishDate              DateTime                   @default(now())
+  expirationDate           DateTime
+  tags                     String[]                   @default([])
+  externalId               String?                    @unique @db.VarChar(255)
+  customParameters         Json?
+  tenantId                 Int
+  collectionTypeId         Int
+  mediaPlaceholderId       String?
+  mediaPayloadObject       Json?
+  trailers                 String[]                   @default([])
+  isSynced                 Boolean?                   @default(true)
+  deleted                  Boolean?                   @default(false)
+  auditInfoId              String?                    @unique
+  network                  String?                    @db.VarChar(255)
+  Network                  Networks?                  @relation(fields: [network, tenantId], references: [language, tenantId])
+  auditInfo                AuditInfo?                 @relation(fields: [auditInfoId], references: [id])
+  collectionType           CollectionTypes            @relation(fields: [collectionTypeId], references: [id])
+  kind                     KindType                   @default(dynamic)
+  collectionBasicInfo      CollectionBasicInfo[]
+  tenant                   Tenant                     @relation(fields: [tenantId], references: [id])
+  collectionFilterConfig   CollectionFilterConfig?
+  collectionTransaction    CollectionTransaction[]
+  collectionThumbnailAsset CollectionThumbnailAsset[]
+  collectionDynamicLink    CollectionDynamicLink[]
+  createdAt                DateTime                   @default(now())
+  createdBy                String?                    @db.VarChar(255)
+  updatedAt                DateTime?
+  lastPublishedAt          DateTime?
+  lastPublishedBy          String?                    @db.VarChar(255)
+  updatedBy                String?                    @db.VarChar(255)
+
+  @@index([customParameters(ops: JsonbPathOps)], type: Gin)
+}
+
+model CollectionDynamicLink {
+  id                    String          @id @default(cuid())
+  campaignName          String
+  campaignSource        CampaignSource
+  campaignMedium        CampaignMedium
+  previewTitle          String?
+  previewSocialImageUrl String?
+  previewDescription    String?         @db.Text
+  shortUrl              String?
+  collectionId          String
+  contentSource         CONTENT_SOURCE? @default(EXTERNAL)
+  isDynamicLinkUpdated  Boolean?        @default(false)
+  collection            Collection      @relation(fields: [collectionId], references: [id])
+
+  @@index([collectionId])
+}
+
+model CollectionBasicInfo {
+  id           Int        @id @default(autoincrement())
+  title        String     @db.VarChar(255)
+  description  String?    @db.Text
+  programName  String?    @db.VarChar(255)
+  language     String     @db.VarChar(255)
+  tenantId     Int
+  collectionId String
+  collection   Collection @relation(fields: [collectionId], references: [id])
+  languageInfo Language   @relation(fields: [language, tenantId], references: [code, tenantId])
+  tenant       Tenant     @relation(fields: [tenantId], references: [id])
+
+  @@index([collectionId])
+}
+
+model CollectionFilterConfig {
+  id           Int        @id @default(autoincrement())
+  collectionId String     @unique
+  filters      Json
+  mediaIds     String[]   @default([])
+  collection   Collection @relation(fields: [collectionId], references: [id])
+}
+
+model Feed {
+  id               String            @id @default(cuid()) @db.VarChar(255)
+  publishDate      DateTime          @default(now())
+  expirationDate   DateTime
+  tags             String[]          @default([])
+  externalId       String?           @unique @db.VarChar(255)
+  customParameters Json?
+  tenantId         Int
+  deleted          Boolean?          @default(false)
+  isSynced         Boolean?          @default(true)
+  network          String?           @db.VarChar(255)
+  Network          Networks?         @relation(fields: [network, tenantId], references: [language, tenantId])
+  feedType         KindType          @default(dynamic)
+  contentType      ContentType       @default(collection)
+  feedBasicInfo    FeedBasicInfo[]
+  feedTransaction  FeedTransaction[]
+  feedFilter       FeedFilterConfig?
+  auditInfoId      String?           @unique
+  auditInfo        AuditInfo?        @relation(fields: [auditInfoId], references: [id])
+  createdAt        DateTime          @default(now())
+  createdBy        String?           @db.VarChar(255)
+  updatedAt        DateTime?
+  lastPublishedAt  DateTime?
+  lastPublishedBy  String?           @db.VarChar(255)
+  updatedBy        String?           @db.VarChar(255)
+}
+
+model VirtualFeed {
+  id                     String                   @id @default(cuid()) @db.VarChar(255)
+  title                  String                   @db.VarChar(255)
+  description            String?                  @db.Text
+  virtualFeedType        KindType                 @default(manual)
+  isSynced               Boolean?                 @default(true)
+  createdBy              String
+  createdAt              DateTime                 @default(now())
+  updatedBy              String?
+  updatedAt              DateTime                 @updatedAt
+  tenantId               Int
+  tenant                 Tenant                   @relation(fields: [tenantId], references: [id])
+  VirtualFeedConfig      VirtualFeedConfig[]
+  VirtualFeedTransaction VirtualFeedTransaction[]
+}
+
+model VirtualFeedConfig {
+  id            Int         @id @default(autoincrement())
+  feedId        String?     @db.VarChar(255)
+  tenantId      Int
+  tenant        Tenant      @relation(fields: [tenantId], references: [id])
+  network       String      @db.VarChar(255)
+  Network       Networks    @relation(fields: [network, tenantId], references: [language, tenantId])
+  virtualFeedId String
+  virtualFeed   VirtualFeed @relation(fields: [virtualFeedId], references: [id])
+}
+
+model VirtualFeedTransaction {
+  virtualFeedId       String
+  virtualFeedState    Json
+  previousVirtualFeed Json?
+  updatedVirtualFeed  Json?
+  id                  String      @id @default(uuid()) @db.Uuid
+  createdAt           DateTime?   @default(now())
+  createdBy           String      @db.VarChar(255)
+  syncStatus          SyncStatus  @default(STARTED)
+  target              String?
+  source              String?
+  virtualFeed         VirtualFeed @relation(fields: [virtualFeedId], references: [id])
+  message             String?     @default("Transaction successfull.") @db.Text
+  stepNumber          Int?
+
+  @@index([virtualFeedId])
+}
+
+model FeedBasicInfo {
+  id          Int     @id @default(autoincrement())
+  title       String  @db.VarChar(255)
+  description String? @db.Text
+  language    String  @db.VarChar(255)
+  tenantId    Int
+  feedId      String
+  feed        Feed    @relation(fields: [feedId], references: [id])
+}
+
+model FeedFilterConfig {
+  id       Int      @id @default(autoincrement())
+  feedId   String   @unique
+  filters  Json
+  assetIds String[] @default([])
+  feed     Feed     @relation(fields: [feedId], references: [id])
+}
+
+model User {
+  id        String           @id @default(cuid()) @db.VarChar(255)
+  email     String           @db.VarChar(255)
+  password  String?          @db.VarChar(255)
+  name      String?          @db.VarChar(255)
+  nickname  String?          @db.VarChar(255)
+  thumbURL  String?          @db.VarChar(255)
+  photoURL  String?          @db.VarChar(255)
+  birthDay  DateTime?
+  gender    Gender?
+  phone     String?          @db.VarChar(255)
+  verified  Boolean?
+  createdAt DateTime?        @default(now())
+  updatedAt DateTime?        @updatedAt
+  deletedAt DateTime?
+  posts     Post[]
+  profile   Profile?
+  // tenantId  Int?
+  Tenant    TenantsOnUsers[]
+  roles     RolesOnUsers[]
+  deleted   Boolean?         @default(false)
+
+  // @@unique([name, tenantId])
+}
+
+model ImageProcessor {
+  id        String @id @default(cuid()) @db.VarChar(255)
+  imageName String
+  imageUrl  String
+}
+
+model Profile {
+  id       String    @id @default(cuid()) @db.VarChar(255)
+  socialId String?
+  authType AuthType?
+  userId   String    @unique @db.VarChar(255)
+  User     User      @relation(fields: [userId], references: [id])
+}
+
+model Post {
+  id        Int       @id @default(autoincrement())
+  title     String    @db.VarChar(255)
+  content   String?
+  published Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now())
+  deletedAt DateTime?
+  userId    String    @db.VarChar(255)
+  user      User      @relation(fields: [userId], references: [id])
+}
+
+model WebHookLogger {
+  id      Int   @id @default(autoincrement())
+  payload Json?
+}
+
+model SyncLogger {
+  id             Int        @id @default(autoincrement())
+  status         String     @default("PENDING")
+  currentMessage String
+  syncStartTime  DateTime   @default(now())
+  syncEndTime    DateTime   @default(now())
+  syncPercentage Float
+  stepNumber     Int
+  config         Json?
+  syncType       SyncType   @default(FULL_SYNC)
+  syncMedium     SyncMedium @default(MEDIA)
+  tenantId       Int        @default(1)
+  tenant         Tenant     @relation(fields: [tenantId], references: [id])
+  createdAt      DateTime   @default(now())
+  createdBy      String?    @db.VarChar(255)
+  updatedAt      DateTime?
+  updatedBy      String?    @db.VarChar(255)
+}
+
+model FieldsDefinitions {
+  id               Int                                 @id @default(autoincrement())
+  fieldName        String                              @db.VarChar(255)
+  fieldLabel       String                              @db.VarChar(255)
+  keyName          String?                             @db.VarChar(255)
+  description      String?
+  dataType         DataType                            @default(Text)
+  fieldType        FieldType                           @default(Textbox)
+  tenantId         Int
+  default          String?                             @db.VarChar(255)
+  allowPublication Boolean?                            @default(true)
+  taxonomy         Taxonomy[]
+  mediaTypes       FieldDefinitionsOnMediaTypes[]
+  collectionTypes  FieldDefinitionsOnCollectionTypes[]
+  tenant           Tenant                              @relation(fields: [tenantId], references: [id])
+}
+
+model Taxonomy {
+  id                  Int               @id @default(autoincrement())
+  label               String            @db.VarChar(255)
+  value               String            @db.VarChar(255)
+  default             Boolean
+  noPub               Boolean?          @default(false)
+  fieldsDefinitionsId Int
+  fieldsDefinitions   FieldsDefinitions @relation(fields: [fieldsDefinitionsId], references: [id])
+}
+
+model Roles {
+  id              Int            @id @default(autoincrement())
+  roleName        String?        @db.VarChar(255)
+  roleCode        String?        @db.VarChar(255)
+  roleDescription String?        @db.VarChar(255)
+  priority        Int?
+  isAdmin         Boolean?       @default(false)
+  isSuperAdmin    Boolean?       @default(false)
+  createdAt       DateTime?      @default(now())
+  createdBy       String?        @db.VarChar(255)
+  updatedAt       DateTime?      @updatedAt
+  updatedBy       String?        @db.VarChar(255)
+  tenantId        Int
+  tenant          Tenant         @relation(fields: [tenantId], references: [id])
+  permissions     Permissions[]
+  users           RolesOnUsers[]
+  deleted         Boolean?       @default(false)
+
+  @@unique([roleName, tenantId])
+}
+
+// migration model to log s3 migration status for all media and collections. 
+model migrationLog {
+  id          String      @id @default(cuid())
+  relationId  String      @unique
+  model       SourceModel @default(MEDIA)
+  migratedUrl String
+  status      SyncStatus
+  percentage  Float
+  bucketName  String
+  s3path      String
+  tenantId    Int
+  tenantCode  String
+}
+
+// model for worker status.
+model WorkerLog {
+  id        String     @id @default(cuid())
+  isRunning Boolean
+  workerId  String
+  jobId     String     @unique
+  jobStatus SyncStatus
+}
+
+model Permissions {
+  id               Int       @id @default(autoincrement())
+  permissionName   String?   @db.VarChar(255)
+  readOnly         Boolean?
+  readWrite        Boolean?
+  readWritePublish Boolean?
+  createdAt        DateTime? @default(now())
+  createdBy        String?   @db.VarChar(255)
+  updatedAt        DateTime? @updatedAt
+  updatedBy        String?   @db.VarChar(255)
+  roleId           Int
+  roles            Roles     @relation(fields: [roleId], references: [id])
+
+  @@unique([permissionName, roleId])
+}
+
+// table for audits
+
+model AuditInfo {
+  id                    String                 @id @default(cuid())
+  createdAt             DateTime?              @default(now())
+  createdBy             String?                @db.VarChar(255)
+  updatedAt             DateTime?              @updatedAt
+  updatedBy             String?                @db.VarChar(255)
+  deleted               Boolean                @default(false)
+  deletedBy             String?                @db.VarChar(255)
+  Feed                  Feed?
+  Collection            Collection?
+  Media                 Media?
+  AdBreak               AdBreak?
+  ThumbnailAsset        ThumbnailAsset?
+  Tenant                Tenant?
+  TenantConfig          TenantConfig?
+  HomePageContent       HomePageContent?
+  Language              Language?
+  MediaTransaction      MediaTransaction?
+  CollectionTransaction CollectionTransaction?
+  FeedTransaction       FeedTransaction?
+  TransactionLogs       TransactionLogs[]
+}
+
+model ImporterLogEnvelop {
+  id                 String               @id @default(cuid())
+  tenantId           Int
+  module             String?              @db.VarChar(255)
+  jobName            String?              @db.VarChar(255)
+  assetId            String               @db.VarChar(255)
+  assetDetails       Json?
+  startTime          DateTime?
+  endTime            DateTime?
+  status             String?              @db.VarChar(255)
+  isUpdate           Boolean?             @default(false)
+  ImporterLogDetails ImporterLogDetails[]
+  importerLogErrors  ImporterLogErrors[]
+}
+
+model ImporterLogDetails {
+  id                   String             @id @default(cuid())
+  task                 String?            @db.VarChar(255)
+  startTime            DateTime?
+  endTime              DateTime?
+  taskStatus           String?            @db.VarChar(255)
+  importerLogEnvelopId String
+  ImporterLogEnvelop   ImporterLogEnvelop @relation(fields: [importerLogEnvelopId], references: [id])
+}
+
+model ImporterLogErrors {
+  id                   String             @id @default(cuid())
+  errorCode            String?            @db.VarChar(255)
+  errorDetails         String?            @db.Text
+  importerLogEnvelopId String
+  ImporterLogEnvelop   ImporterLogEnvelop @relation(fields: [importerLogEnvelopId], references: [id])
+}
+
+model ClipInstances {
+  id               String              @id @default(cuid())
+  scheduledId      String?
+  title            String?             @db.VarChar(255)
+  description      String?             @db.Text
+  tenantId         Int
+  externalId       String?             @unique
+  assetURL         String?
+  tags             String[]            @default([])
+  customParameters Json?
+  startDate        DateTime?           @db.Date
+  startTime        DateTime?           @db.Time()
+  endDate          DateTime?           @db.Date
+  endTime          DateTime?           @db.Time()
+  assetDuration    Float?
+  deleted          Boolean?            @default(false)
+  generateMP4      Boolean?            @default(false)
+  network          String?             @db.VarChar(255)
+  Network          Networks?           @relation(fields: [network, tenantId], references: [language, tenantId])
+  status           ClippingLogsStatus?
+  createdAt        DateTime            @default(now())
+  createdBy        String?             @db.VarChar(255)
+  updatedAt        DateTime?           @updatedAt
+  updatedBy        String?             @db.VarChar(255)
+  ClipErrors       ClipErrors?
+}
+
+model ClipErrors {
+  id             String        @id @default(cuid())
+  errorCode      String?       @db.VarChar(255)
+  errorDetails   String?       @db.Text
+  clipInstanceId String        @unique
+  ClipInstances  ClipInstances @relation(fields: [clipInstanceId], references: [id])
+}
+
+model LiveEvents {
+  id              String            @id @default(cuid())
+  mediaId         String?
+  createdAt       DateTime          @default(now())
+  createdBy       String?           @db.VarChar(255)
+  updatedAt       DateTime?         @updatedAt
+  updatedBy       String?           @db.VarChar(255)
+  title           String
+  region          String
+  protocol        String
+  resolution      Resolution        @default(HD_1080P)
+  streamUrl       String?
+  streamId        String?
+  status          String            @default("Scheduled")
+  hlsPlayoutUrl   String?
+  ingestPointId   String?
+  // date here will be referred to start date
+  date            DateTime          @db.Date
+  startTime       DateTime          @db.Time()
+  endDate         DateTime?         @db.Date
+  endTime         DateTime          @db.Time()
+  startDateTime   DateTime?
+  endDateTime     DateTime?
+  network         String?           @db.VarChar(255)
+  cronjobName     String?
+  Network         Networks?         @relation(fields: [network, tenantId], references: [language, tenantId])
+  vodId           String?           @unique
+  VodMediaDetails VodMediaDetails?  @relation(fields: [vodId], references: [id])
+  tenantId        Int
+  Tenant          Tenant            @relation(fields: [tenantId], references: [id])
+  LiveEventErrors LiveEventErrors[]
+}
+
+model LiveEventErrors {
+  id           String     @id @default(cuid())
+  errorCode    String?    @db.VarChar(255)
+  errorDetails String?    @db.Text
+  createdAt    DateTime   @default(now())
+  liveEventId  String
+  LiveEvents   LiveEvents @relation(fields: [liveEventId], references: [id])
+}
+
+model VodMediaDetails {
+  id               String      @id @default(cuid())
+  title            String
+  description      String
+  mediaTypeId      Int
+  MediaType        MediaTypes  @relation(fields: [mediaTypeId], references: [id])
+  tags             String[]
+  customParameters Json
+  LiveEvents       LiveEvents?
+}
+
+model MediaImportStage {
+  id           String      @id @default(cuid())
+  externalId   String
+  tenantId     String
+  payload      String
+  revisionType String
+  status       StageStatus
+  type         EventType
+  backstageId  String?
+  jwPlayerId   String?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime?   @updatedAt
+}
+
+model TaskResults {
+  id          String    @id @default(cuid())
+  taskId      String
+  taskName    String
+  taskStatus  String
+  taskMessage String
+  createdAt   DateTime? @default(now())
+  updatedAt   DateTime? @updatedAt
+}
+
+view mediaView {
+  id                        String      @unique
+  externalId                String?
+  expirationDate            DateTime?
+  publishDate               DateTime    @default(now())
+  tags                      String[]
+  tenantId                  Int
+  tagslowercase             String
+  customParameters          Json?
+  thumbnail                 String?
+  customParametersLowercase Json?
+  tbnMediaId                Json?
+  description               String?
+  title                     String
+  programName               String?
+  language                  String
+  mediaTypeId               Int
+  mediaTypeName             String
+  syncStatus                SyncStatus?
+  duration                  Float?
+  createdAt                 DateTime
+  updatedAt                 DateTime
+  videoId                   Int?
+  videoUrl                  String?
+  thumbnailKey              String?
+  thumbnailId               Int?
+  mediaBasicInfoId          Int
+  isMediaDeleted            Boolean?    @default(false)
+  jwplayerMetadata          Json?
+  network                   String?
+}
+
+view collectionView {
+  id                        String    @unique
+  externalId                String?
+  expirationDate            DateTime
+  publishDate               DateTime  @default(now())
+  createdAt                 DateTime
+  tags                      String[]
+  tenantId                  Int
+  tagslowercase             String
+  customParameters          Json?
+  customParametersLowercase Json?
+  collectionName            String?
+  description               String
+  title                     String
+  programName               String?
+  language                  String
+  filters                   Json
+  mediaIds                  String[]  @default([])
+  kind                      KindType?
+  thumbnail                 String?
+  isCollectionDeleted       Boolean?  @default(false)
+  mediaPlaceholderId        String?
+  network                   String?
+}
+
+view feedView {
+  id                        String   @unique
+  externalId                String?
+  expirationDate            DateTime
+  createdAt                 DateTime
+  tenantId                  Int
+  feedType                  KindType
+  publishDate               DateTime @default(now())
+  tags                      String[]
+  tagslowercase             String
+  customParameters          Json?
+  customParametersLowercase Json?
+  description               String
+  title                     String
+  language                  String
+  assetIds                  String[] @default([])
+  filters                   Json
+  isFeedDeleted             Boolean? @default(false)
+  network                   String?
+}
+
+view drupalView {
+  id                        String      @unique
+  externalId                String?
+  tenantId                  Int
+  expirationDate            DateTime?
+  publishDate               DateTime    @default(now())
+  tags                      String[]
+  tagslowercase             String
+  customParameters          Json?
+  customParametersLowercase Json?
+  tbnMediaId                Json?
+  createdAt                 DateTime
+  updatedAt                 DateTime
+  videoId                   Int?
+  duration                  Float?
+  videoUrl                  String?
+  mediaTypeId               Int
+  mediaTypeName             String
+  thumbnailId               Int?
+  thumbnailKey              String?
+  thumbnail                 String?
+  syncStatus                SyncStatus?
+  mediaBasicInfo            Json?
+  captions                  Json?
+}
+
+view deliveryMediaView {
+  id                        String    @unique
+  externalId                String?
+  expirationDate            DateTime?
+  publishDate               DateTime?
+  tags                      String[]
+  tenantId                  Int
+  tagslowercase             String?
+  customParameters          Json?
+  description               String?
+  programName               String?
+  title                     String?
+  language                  String?
+  videoUrl                  String?
+  videoDuration             Float?
+  customParametersLowercase Json?
+  thumbnails                Json?
+  mediaBasicInfo            Json?
+  captions                  Json?
+}
+
+view media_cp_view {
+  key        String
+  value      String
+  id         String
+  externalId String
+
+  @@id([key, id])
+}
+
+view collection_cp_view {
+  key        String
+  value      String
+  id         String
+  externalId String
+
+  @@id([key, id])
+}
+
+view feed_cp_view {
+  key        String
+  value      String
+  id         String
+  externalId String
+
+  @@id([key, id])
+}
+
+enum AssetType {
+  video
+  trailer
+  liveStream
+  link
+  liveEvent
+}
+
+enum Gender {
+  male
+  female
+}
+
+enum AuthType {
+  email
+  facebook
+  google
+  apple
+}
+
+enum Progress {
+  RG
+  AK
+  PG
+  ER
+  CP
+}
+
+enum CONTENT_SOURCE {
+  LOCAL
+  EXTERNAL
+}
+
+enum SyncStatus {
+  STARTED
+  PENDING
+  COMPLETED
+  ERROR
+  NOTPUBLISHED
+}
+
+enum ClippingLogsStatus {
+  INITIATED
+  TRANSCODING
+  COMPLETED
+  ERROR
+}
+
+enum HomePageContentStatus {
+  SCHEDULED
+  ACTIVE
+  INACTIVE
+  PAST
+}
+
+enum ContentType {
+  collection
+  media
+  mixed
+}
+
+enum KindType {
+  dynamic
+  manual
+}
+
+enum SyncType {
+  PART_SYNC
+  FULL_SYNC
+  ADBREAKS_SYNC
+}
+
+enum SyncMedium {
+  MEDIA
+  COLLECTION
+  ADBREAKS
+}
+
+enum CampaignSource {
+  VOD
+  Email
+  Social
+}
+
+enum CampaignMedium {
+  VOD
+  Email
+  Facebook
+  Instagram
+  Twitter
+  Youtube
+}
+
+enum DataType {
+  Text
+  Integer
+  Float
+  Boolean
+  Date
+  DateTime
+  SingleSelection
+  MultipleSelection
+}
+
+enum FieldType {
+  Textbox
+  Textarea
+  DatetimePicker
+  Checkbox
+  MultiselectListbox
+  OptionGroup
+}
+
+enum Resolution {
+  HD_1080P
+  ULTRA_HD_4K
+}
+
+enum StageStatus {
+  INQUEUE
+  STARTED
+  COMPLETED
+  ERROR
+}
+
+enum EventType {
+  S3
+  MRSS
+}

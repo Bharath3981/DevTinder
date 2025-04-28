@@ -1,0 +1,31 @@
+{
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.tabSize": 2
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[html]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "eslint.format.enable": true,
+  "eslint.lintTask.enable": true,
+  "editor.formatOnSave": true,
+  "editor.formatOnPaste": false, // required
+  "editor.formatOnType": false, // required
+  "editor.formatOnSaveMode": "file", // required to format on save
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "prettier.bracketSpacing": true,
+  "editor.wordWrapColumn": 180,
+  "[prisma]": {
+    "editor.defaultFormatter": "Prisma.prisma"
+  } // set as "true" to run 'prettier' last not first
+}

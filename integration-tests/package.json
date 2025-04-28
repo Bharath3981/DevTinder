@@ -1,0 +1,29 @@
+{
+  "scripts": {
+    "start": "ts-node server/server.ts",
+    "dev": "nodemon --watch server --ext ts --exec ts-node server/server.ts",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:api": "jest --config jest.config.ts",
+    "test:debug": "node --inspect-brk ./node_modules/.bin/jest --runInBand"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.6.0",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "nodemon": "^3.1.10"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.1",
+    "@types/jest": "^29.5.14",
+    "@types/node": "^22.14.1",
+    "@types/supertest": "^6.0.3",
+    "jest": "^29.7.0",
+    "prisma": "^6.6.0",
+    "puppeteer": "^24.7.1",
+    "supertest": "^7.1.0",
+    "ts-jest": "^29.3.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
+  }
+}
