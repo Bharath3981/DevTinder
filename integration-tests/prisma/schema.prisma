@@ -28,6 +28,8 @@ model Media {
   isSynced         Boolean?           @default(true)
   jwplayerMetadata Json?
   network          String?            @db.VarChar(255)
+  cdnType          CDNType?           @default(JW_PLAYER)
+  hostingType      HostingType?       @default(SELF_HOSTED)
   Network          Networks?          @relation(fields: [network, tenantId], references: [language, tenantId])
   auditInfoId      String?            @unique
   auditInfo        AuditInfo?         @relation(fields: [auditInfoId], references: [id])
@@ -39,6 +41,8 @@ model Media {
   thumbnailAsset   ThumbnailAsset[]
   videoAsset       VideoAsset?
   dynamicLink      DynamicLink[]
+  PlaylistEntries  PlaylistEntries[]
+  DeliveryMedia    DeliveryMedia[]
 
   @@index([customParameters(ops: JsonbPathOps)], type: Gin)
   @@index([externalId], type: Hash)
@@ -264,6 +268,10 @@ model Tenant {
   VirtualFeed         VirtualFeed[]
   VirtualFeedConfig   VirtualFeedConfig[]
   LiveEvents          LiveEvents[]
+  MrssConfiguration   MrssConfiguration[]
+  MrssFeedConfig      MrssFeedConfig[]
+  DeliveryMedia       DeliveryMedia[]
+  DeliveryPlaylist    DeliveryPlaylist[]
 
   @@unique([tenantCode])
 }
@@ -658,6 +666,9 @@ model Collection {
   lastPublishedAt          DateTime?
   lastPublishedBy          String?                    @db.VarChar(255)
   updatedBy                String?                    @db.VarChar(255)
+  PlaylistEntries          PlaylistEntries[]
+  MrssFeedConfig           MrssFeedConfig[]
+  DeliveryPlaylist         DeliveryPlaylist[]
 
   @@index([customParameters(ops: JsonbPathOps)], type: Gin)
 }
@@ -1112,6 +1123,7 @@ model MediaImportStage {
   jwPlayerId   String?
   createdAt    DateTime    @default(now())
   updatedAt    DateTime?   @updatedAt
+  comments     String?
 }
 
 model TaskResults {
@@ -1122,6 +1134,105 @@ model TaskResults {
   taskMessage String
   createdAt   DateTime? @default(now())
   updatedAt   DateTime? @updatedAt
+}
+
+model WebhookEventHistory {
+  id        String             @id @default(cuid())
+  name      String
+  eventType String
+  source    WebhookEventType
+  status    WebhookEventStatus
+  eventTime DateTime
+  message   String
+  metadata  Json?
+  createdAt DateTime?          @default(now())
+}
+
+model PlaylistEntries {
+  id         String     @id @default(cuid())
+  playlistId String
+  mediaId    String
+  addedAt    DateTime   @default(now())
+  removedAt  DateTime?
+  isRemoved  Boolean    @default(false)
+  Media      Media      @relation(fields: [mediaId], references: [id])
+  Collection Collection @relation(fields: [playlistId], references: [id])
+
+  @@index([playlistId])
+}
+
+model MrssConfiguration {
+  id             String           @id @default(cuid())
+  tenantId       Int
+  name           String
+  fieldMapping   Json
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime?        @updatedAt
+  Tenant         Tenant           @relation(fields: [tenantId], references: [id])
+  MrssFeedConfig MrssFeedConfig[]
+}
+
+model MrssFeedConfig {
+  id                String            @id @default(cuid())
+  playlistId        String
+  tenantId          Int
+  mrssConfigId      String
+  feedFormat        String
+  itemTTL           Int
+  namespace         String            @default("")
+  createdAt         DateTime          @default(now())
+  MrssConfiguration MrssConfiguration @relation(fields: [mrssConfigId], references: [id])
+  Collection        Collection        @relation(fields: [playlistId], references: [id])
+  Tenant            Tenant            @relation(fields: [tenantId], references: [id])
+}
+
+model DeliveryMedia {
+  id                        String    @id
+  tenantId                  Int
+  externalId                String?   @unique @db.VarChar(255)
+  title                     String    @db.VarChar(255)
+  description               String?   @db.Text
+  programName               String?   @db.VarChar(255)
+  tags                      String[]
+  customParameters          Json?
+  createdAt                 DateTime
+  updatedAt                 DateTime?
+  publishDate               DateTime?
+  tagsLowercase             String[]
+  customParametersLowercase Json?
+  basicInfo                 Json?
+  thumbnails                Json?
+  Media                     Media     @relation(fields: [id], references: [id])
+  Tenant                    Tenant    @relation(fields: [tenantId], references: [id])
+
+  @@index([customParametersLowercase(ops: JsonbPathOps)], type: Gin)
+  @@index([tagsLowercase], type: Gin)
+  @@index([id])
+  @@index([tenantId])
+}
+
+model DeliveryPlaylist {
+  id               String     @id
+  tenantId         Int
+  externalId       String?    @unique @db.VarChar(255)
+  title            String     @db.VarChar(255)
+  description      String?    @db.Text
+  programName      String?    @db.VarChar(255)
+  tags             String[]
+  customParameters Json?
+  kind             KindType
+  filterConfig     Json?
+  mediaIds         String[]
+  thumbnails       Json?
+  basicInfo        Json?
+  createdAt        DateTime
+  updatedAt        DateTime?
+  publishDate      DateTime?
+  Collection       Collection @relation(fields: [id], references: [id])
+  Tenant           Tenant     @relation(fields: [tenantId], references: [id])
+
+  @@index([id])
+  @@index([tenantId])
 }
 
 view mediaView {
@@ -1404,4 +1515,29 @@ enum StageStatus {
 enum EventType {
   S3
   MRSS
+}
+
+enum WebhookEventType {
+  JWPLAYER
+}
+
+enum WebhookEventStatus {
+  PENDING
+  INPROGRESS
+  COMPLETED
+  ERROR
+  IGNORED
+}
+
+enum HostingType {
+  SELF_HOSTED
+  EXTERNAL
+}
+
+enum CDNType {
+  JW_PLAYER
+  INTERNAL
+  MBS_CDN
+  MBS_INTERNAL
+  BRIGHTCOVE
 }

@@ -1,0 +1,26 @@
+import { collectionView } from '@prisma/client';
+
+export const collectionViewMock: collectionView = {
+  id: 'playlist1',
+  externalId: null,
+  expirationDate: new Date('2026-01-01T00:00:00Z'),
+  publishDate: new Date('2025-02-01T00:00:00Z'),
+  createdAt: new Date('2025-01-01T00:00:00Z'),
+  tags: ['tag1', 'tag2'],
+  tenantId: 1,
+  tagslowercase: 'tag1,tag2',
+  customParameters: null,
+  customParametersLowercase: null,
+  collectionName: 'Test playlist',
+  description: 'A test playlist',
+  title: 'Test Playlist',
+  programName: null,
+  language: 'en',
+  filters: { filter1: 'value1', filter2: 'value2' },
+  mediaIds: ['media1', 'media2'],
+  kind: 'manual',
+  thumbnail: 'http://example.com/thumbnail.jpg',
+  isCollectionDeleted: null,
+  mediaPlaceholderId: 'placeholder1',
+  network: 'Test Network',
+};
