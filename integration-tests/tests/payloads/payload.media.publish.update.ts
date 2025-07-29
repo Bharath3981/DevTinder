@@ -2,7 +2,7 @@ export const publishUpdateMediaPayloads = {
   TestCase1: {
     id: 'EYCMiNeI',
     tags: ['trailer', 'TestCase1', 'TestCase2'],
-    customParameters: { TestCase: '1', preview_playback: 'https://cdn.jwplayer.com/manifests/LqaujshZ.m3u8', plan_id: 'no' },
+    customParameters: { TestCase: '1', TestCase2: '2', preview_playback: 'https://cdn.jwplayer.com/manifests/LqaujshZ.m3u8', plan_id: 'no' },
     expirationDate: '2099-12-31T12:00:00.000Z',
     publishDate: '2025-07-28T04:33:00.000Z',
     mediaTypeId: 7,
@@ -26,6 +26,17 @@ export const publishUpdateMediaPayloads = {
         auditInfoId: null,
         contentSource: 'EXTERNAL',
         id: 275471,
+      },{
+        mediaId: 'EYCMiNeI',
+        tenantId: 4,
+        thumbnailKey: 'imgPreview120by90',
+        thumbnailUrl: 'https://d1gsai8h4wemh7.cloudfront.net/MBS_ASSETS/dev/thumbnails/Bw0zKpHLLU3p.jpg',
+        externalId: '',
+        isThumbnailReuploaded: false,
+        deleted: false,
+        publishDate: null,
+        auditInfoId: null,
+        contentSource: 'LOCAL'
       },
     ],
     videoAsset: {
@@ -39,7 +50,13 @@ export const publishUpdateMediaPayloads = {
       duration: 1758.354,
       isVideoReUploaded: true,
       contentSource: 'LOCAL',
-      captions: [],
+      captions: [{
+        captionUrl: "https://d1gsai8h4wemh7.cloudfront.net/MBS_ASSETS/dev/captions/ttod9123-1752089793595-1752197057062-1753764996689.vtt",
+        contentSource: "LOCAL",
+        isCaptionsReuploaded: true,
+        label: "ENGLISH",
+        language: "en"
+      }],
       audioTracks: [],
       videoResolutions: [],
     },
